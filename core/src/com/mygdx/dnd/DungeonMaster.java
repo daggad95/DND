@@ -89,6 +89,7 @@ public class DungeonMaster {
                 //defaults to 1x1
                 float width = 1;
                 float height = 1;
+                int numEntities = tk.nextToken();
                 String name = tk.nextToken();
                 if(tk.hasMoreTokens()){
                     width = Float.parseFloat(tk.nextToken());
@@ -99,8 +100,9 @@ public class DungeonMaster {
                 if (textures.get(name) == null) {
                     throw new Exception();
                 }
-
-                entities.add(new Entity(lastClicked, new Vector2(width, height), textures.get(name), textures.get("whitebox")));
+                for(int x = 0; x < numEntities; x++){
+                    entities.add(new Entity(lastClicked, new Vector2(width, height), textures.get(name), textures.get("whitebox")));
+                }
                 setCurrentEntity(entities.get(entities.size() - 1));
             } catch (Exception e) {
                 System.out.println("invalid command");
