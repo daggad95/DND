@@ -41,6 +41,15 @@ public class PlayerController {
                return true;
             }
 
+            public boolean buttonDown(Controller controller, int buttonCode) {
+                if (buttonCode == Xbox360Pad.BUTTON_A) {
+                    entity.changeMoveRadius(1);
+                } else if (buttonCode == Xbox360Pad.BUTTON_X) {
+                    entity.changeMoveRadius(-1);
+                }
+                return true;
+            }
+
         });
     }
 }
