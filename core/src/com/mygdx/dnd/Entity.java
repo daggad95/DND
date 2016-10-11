@@ -61,7 +61,6 @@ public class Entity {
     }
 
     private void drawMoveRadius(SpriteBatch batch) {
-        System.out.println(moveRadius);
         Color c = batch.getColor();
         batch.setColor(c.r, c.g, c.b, 0.7f);
 
