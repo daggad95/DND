@@ -86,11 +86,16 @@ public class DungeonMaster {
         if (command != "") {
             try {
                 StringTokenizer tk = new StringTokenizer(command);
-
+                //defaults to 1x1
+                float width = 1;
+                float height = 1;
                 String name = tk.nextToken();
-                float width = Float.parseFloat(tk.nextToken());
-                float height = Float.parseFloat(tk.nextToken());
-
+                if(tk.hasMoreTokens()){
+                    width = Float.parseFloat(tk.nextToken());
+                }
+                if(tk.hasMoreTokens()){
+                    height = Float.parseFloat(tk.nextToken());
+                }
                 if (textures.get(name) == null) {
                     throw new Exception();
                 }
