@@ -99,6 +99,10 @@ public class DMController extends InputAdapter {
             } else if (character == '=') {
                 dungeonMaster.getCurrentEntity().changeMoveRadius(1);
             }
+
+            if (character == ' ') {
+                dungeonMaster.getCommand();
+            }
         }
         return true;
     }

@@ -23,8 +23,6 @@ public class GameScreen extends ScreenAdapter {
 
 	List<Entity> players;
 
-	List<PlayerController> controllers;
-
 	DungeonMaster dm;
 	DMController dmc;
 
@@ -44,7 +42,6 @@ public class GameScreen extends ScreenAdapter {
 
 		loadTextures();
 
-        controllers = new LinkedList<PlayerController>();
         players = new LinkedList<Entity>();
 
 		float w = Gdx.graphics.getWidth();
@@ -82,33 +79,10 @@ public class GameScreen extends ScreenAdapter {
                 game.getPromptScreen().prompt("Enter Map");
             }
         } else if (loadStage == 1) { //Loading players
-            String response = game.getPromptScreen().getResponse();
-
-            //once all players are loaded move to next stage
-            if (loadedPlayers == Controllers.getControllers().size) {
                 loadStage++;
                 dm = new DungeonMaster(players, camera, textures, game);
                 dmc = new DMController(dm, camera);
                 Gdx.input.setInputProcessor(dmc);
-            } else if (response != "") {
-                try {
-                    if(textures.get(response) == null) {
-                        throw new Exception();
-                    }
-
-                    Entity player = new Entity(new Vector2(0, 0), new Vector2(1, 1), textures.get(response), textures.get("whitebox"));
-                    PlayerController controller = new PlayerController(Controllers.getControllers().get(loadedPlayers), player);
-
-                    players.add(player);
-                    controllers.add(controller);
-                    loadedPlayers++;
-
-                } catch (Exception e) {
-                    game.getPromptScreen().prompt("Invalid player name, please try again");
-                }
-            } else {
-                game.getPromptScreen().prompt("Enter Player" + (loadedPlayers + 1));
-            }
         } else { //Normal Game loop
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 

@@ -118,4 +118,8 @@ public class Entity {
             moveRadius += deltaRadius;
         }
     }
+
+    public void setBgColor(Color c) {
+        bgColor = c;
+    }
 }

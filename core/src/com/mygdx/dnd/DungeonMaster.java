@@ -3,11 +3,14 @@ package com.mygdx.dnd;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.controllers.Controllers;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -20,6 +23,7 @@ import java.util.StringTokenizer;
 public class DungeonMaster {
     private Entity currentEntity;
     private List<Entity> entities;
+    List<PlayerController> controllers;
     Map<String, Texture> textures;
     private OrthographicCamera camera;
     private boolean cameraMoving[]; //determines whether camera is moving in 4 directions
@@ -36,6 +40,7 @@ public class DungeonMaster {
         this.textures = textures;
         this.game = game;
         actionState = 0;
+        controllers = new ArrayList<PlayerController>();
 
         cameraMoving = new boolean[4];
         cameraMoving[Direction.UP] = false;
@@ -121,6 +126,34 @@ public class DungeonMaster {
         }
     }
 
+    private void handleCommand(String command) {
+        if (command != "") {
+            try {
+                StringTokenizer tk = new StringTokenizer(command);
+
+                String mainCommand = tk.nextToken();
+
+                if (mainCommand.equals("setplayer")) {
+                    if (tk.hasMoreTokens()) {
+                        int playerNum = Integer.parseInt(tk.nextToken());
+                        setPlayer(playerNum);
+                    }
+                }
+
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
+    }
+
+    //Turns the current entity into a
+    //controllable player;
+    private void setPlayer(int playerNum) {
+        if (Controllers.getControllers().size >= playerNum) {
+            controllers.add(new PlayerController(Controllers.getControllers().get(playerNum - 1), currentEntity));
+            currentEntity.setBgColor(Color.WHITE);
+        }
+    }
 
     public void update(SpriteBatch batch) {
         if (actionState == States.NORMAL) {
@@ -136,6 +169,9 @@ public class DungeonMaster {
             camera.update();
         } else if (actionState == States.SPAWN_ENTITY) {
             spawnEntity(game.getPromptScreen().getResponse());
+            setActionState(States.NORMAL);
+        } else if (actionState == States.GET_COMMAND) {
+            handleCommand(game.getPromptScreen().getResponse());
             setActionState(States.NORMAL);
         }
     }
@@ -154,5 +190,10 @@ public class DungeonMaster {
 
     public void deleteCurrentEntity() {
         entities.remove(entities.indexOf(currentEntity));
+    }
+
+    public void getCommand() {
+        game.getPromptScreen().prompt("Enter Command");
+        actionState = States.GET_COMMAND;
     }
 }
