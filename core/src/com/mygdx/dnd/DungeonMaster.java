@@ -119,7 +119,7 @@ public class DungeonMaster {
 
                 for(int x = 0; x < numEntities; x++){
                     lastClicked.add(1, 0);
-                    Entity e = new Entity(new Vector2(lastClicked), new Vector2(width, height), textures.get(name), textures.get("whitebox"));
+                    Entity e = new Entity(new Vector2(lastClicked), new Vector2(width, height), name, textures);
                     entities.add(e);
                 }
                 setCurrentEntity(entities.get(entities.size() - 1));
@@ -142,6 +142,10 @@ public class DungeonMaster {
                         int playerNum = Integer.parseInt(tk.nextToken());
                         setPlayer(playerNum);
                     }
+                } else if (mainCommand.equals("kill")) {
+                    setCEDeathState(true);
+                } else if (mainCommand.equals("unkill")) {
+                    setCEDeathState(false);
                 }
 
             } catch (Exception e) {
@@ -157,6 +161,10 @@ public class DungeonMaster {
             controllers.add(new PlayerController(Controllers.getControllers().get(playerNum - 1), currentEntity));
             currentEntity.setBgColor(Color.WHITE);
         }
+    }
+
+    private void setCEDeathState(boolean state) {
+        currentEntity.setDead(state);
     }
 
     public void update(SpriteBatch batch) {

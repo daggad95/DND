@@ -42,8 +42,10 @@ public class Entity {
     protected Map<String, Texture> textures;
     protected String textureName;
     protected static final String BG_TEXTURE = "whitebox"; //name of background texture
+    protected static final String DEAD_TEXTURE = "dead"; // name of dead overlay texture
 
     //stats
+    protected boolean dead;
 
 
     public Entity(Vector2 position, Vector2 size, String textureName, Map<String, Texture> textures) {
@@ -68,6 +70,8 @@ public class Entity {
         bgAlpha = DEFAULT_ALPHA;
         pulseDirection = Direction.UP;
         selected = false;
+
+        dead = false;
     }
 
     public void update(SpriteBatch batch) {
@@ -85,6 +89,11 @@ public class Entity {
 
         batch.setColor(bgColor.r, bgColor.g, bgColor.b, 1f);
         batch.draw(textures.get(textureName), position.x, position.y, size.x, size.y);
+
+        if (dead) {
+            batch.setColor(Color.WHITE);
+            batch.draw(textures.get(DEAD_TEXTURE), position.x, position.y, size.x, size.y);
+        }
 
         if (moveRadius > 0) {
             drawMoveRadius(batch);
@@ -177,5 +186,9 @@ public class Entity {
         if (!selected) {
             bgAlpha = DEFAULT_ALPHA;
         }
+    }
+
+    public void setDead(boolean deathState) {
+        dead = deathState;
     }
 }
