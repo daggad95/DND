@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Select;
 
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -17,8 +18,6 @@ import java.util.Random;
 public class Entity {
     protected Vector2 position;
     protected Vector2 size;
-    protected Texture texture;
-    protected Texture background;
     protected BitmapFont font;
     protected Color bgColor;
 
@@ -39,12 +38,19 @@ public class Entity {
     protected int pulseDirection;
     protected boolean selected;
 
+    //texture stuff
+    protected Map<String, Texture> textures;
+    protected String textureName;
+    protected static final String BG_TEXTURE = "whitebox"; //name of background texture
 
-    public Entity(Vector2 position, Vector2 size, Texture texture, Texture background) {
+    //stats
+
+
+    public Entity(Vector2 position, Vector2 size, String textureName, Map<String, Texture> textures) {
         this.position = position;
         this.size = size;
-        this.texture = texture;
-        this.background = background;
+        this.textures = textures;
+        this.textureName = textureName;
 
         moveRadius = 0;
         font = new BitmapFont();
@@ -71,14 +77,14 @@ public class Entity {
 
         batch.setColor(bgColor.r, bgColor.g, bgColor.b, bgAlpha);
         if (selected) {
-            batch.draw(background, position.x - SELECT_BOX_RADIUS, position.y - SELECT_BOX_RADIUS,
+            batch.draw(textures.get(BG_TEXTURE), position.x - SELECT_BOX_RADIUS, position.y - SELECT_BOX_RADIUS,
                     size.x + SELECT_BOX_RADIUS * 2, size.y + SELECT_BOX_RADIUS * 2);
         } else {
-            batch.draw(background, position.x, position.y, size.x, size.y);
+            batch.draw(textures.get(BG_TEXTURE), position.x, position.y, size.x, size.y);
         }
 
         batch.setColor(bgColor.r, bgColor.g, bgColor.b, 1f);
-        batch.draw(texture, position.x, position.y, size.x, size.y);
+        batch.draw(textures.get(textureName), position.x, position.y, size.x, size.y);
 
         if (moveRadius > 0) {
             drawMoveRadius(batch);
@@ -94,7 +100,7 @@ public class Entity {
         for (int i = -moveRadius; i < moveRadius + 1; i++) {
             for (int j = -moveRadius; j < moveRadius + 1; j++) {
                 if (Math.abs(i) + Math.abs(j) <= moveRadius && Math.abs(i) + Math.abs(j) != 0) {
-                    batch.draw(background, position.x + i, position.y + j, 1, 1);
+                    batch.draw(textures.get(BG_TEXTURE), position.x + i, position.y + j, 1, 1);
                 }
             }
         }
