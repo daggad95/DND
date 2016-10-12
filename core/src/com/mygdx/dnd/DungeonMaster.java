@@ -79,7 +79,11 @@ public class DungeonMaster {
         cameraMoving[direction] = value;
     }
     public void setCurrentEntity(Entity e) {
+        if (currentEntity != null) {
+            currentEntity.setSelected(false);
+        }
         currentEntity = e;
+        currentEntity.setSelected(true);
     }
     public void setLastClicked(Vector2 p) { lastClicked = p; }
     public Entity getCurrentEntity() {

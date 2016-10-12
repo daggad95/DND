@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Select;
+
 import java.util.Random;
 
 /**
@@ -17,7 +19,7 @@ public class Entity {
     protected Vector2 size;
     protected Texture texture;
     protected Texture background;
-    BitmapFont font;
+    protected BitmapFont font;
     protected Color bgColor;
 
     protected boolean[] moving; //used to determine which direction players is moving
@@ -26,6 +28,17 @@ public class Entity {
     public static final float moveInterval = 0.25f; //time in seconds required before next move
 
     protected int moveRadius;
+
+    //pulse animation stuff
+    protected static final float DEFAULT_ALPHA = 0.3f;
+    protected static final float MIN_PULSE = 0.3f;
+    protected static final float MAX_PULSE = 0.7f;
+    protected static final float PULSE_RATE = 0.8f;
+    protected static final float SELECT_BOX_RADIUS = 0.1f;
+    protected float bgAlpha;
+    protected int pulseDirection;
+    protected boolean selected;
+
 
     public Entity(Vector2 position, Vector2 size, Texture texture, Texture background) {
         this.position = position;
@@ -45,11 +58,24 @@ public class Entity {
         moving[Direction.DOWN] = false;
 
         lastMove = 0;
+
+        bgAlpha = DEFAULT_ALPHA;
+        pulseDirection = Direction.UP;
+        selected = false;
     }
 
     public void update(SpriteBatch batch) {
-        batch.setColor(bgColor.r, bgColor.g, bgColor.b, 0.3f);
-        batch.draw(background, position.x, position.y, size.x, size.y);
+        if (selected) {
+            pulse();
+        }
+
+        batch.setColor(bgColor.r, bgColor.g, bgColor.b, bgAlpha);
+        if (selected) {
+            batch.draw(background, position.x - SELECT_BOX_RADIUS, position.y - SELECT_BOX_RADIUS,
+                    size.x + SELECT_BOX_RADIUS * 2, size.y + SELECT_BOX_RADIUS * 2);
+        } else {
+            batch.draw(background, position.x, position.y, size.x, size.y);
+        }
 
         batch.setColor(bgColor.r, bgColor.g, bgColor.b, 1f);
         batch.draw(texture, position.x, position.y, size.x, size.y);
@@ -119,7 +145,31 @@ public class Entity {
         }
     }
 
+    public void pulse() {
+        if (pulseDirection == Direction.DOWN) {
+            if (Math.abs(MIN_PULSE - bgAlpha) > 0.01) {
+                bgAlpha -= PULSE_RATE * Gdx.graphics.getDeltaTime();
+            } else {
+                pulseDirection = Direction.UP;
+            }
+        } else {
+            if (Math.abs(MAX_PULSE - bgAlpha) > 0.01) {
+                bgAlpha += PULSE_RATE * Gdx.graphics.getDeltaTime();
+            } else {
+                pulseDirection = Direction.DOWN;
+            }
+        }
+    }
+
     public void setBgColor(Color c) {
         bgColor = c;
+    }
+
+    public void setSelected(boolean value) {
+        selected = value;
+
+        if (!selected) {
+            bgAlpha = DEFAULT_ALPHA;
+        }
     }
 }
