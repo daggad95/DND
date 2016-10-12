@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
+import java.util.Random;
 
 /**
  * Created by David on 10/2/2016.
@@ -17,6 +18,7 @@ public class Entity {
     protected Texture texture;
     protected Texture background;
     BitmapFont font;
+    protected Color bgColor;
 
     protected boolean[] moving; //used to determine which direction players is moving
     protected float timer; //used to control movement
@@ -33,6 +35,8 @@ public class Entity {
 
         moveRadius = 0;
         font = new BitmapFont();
+        Random rand = new Random();
+        bgColor = new Color(rand.nextFloat(), rand.nextFloat(), rand.nextFloat(), (float)1);
 
         moving = new boolean[4];
         moving[Direction.RIGHT] = false;
@@ -44,12 +48,10 @@ public class Entity {
     }
 
     public void update(SpriteBatch batch) {
-        Color c = batch.getColor();
-
-        batch.setColor(c.r, c.g, c.b, 0.3f);
+        batch.setColor(bgColor.r, bgColor.g, bgColor.b, 0.3f);
         batch.draw(background, position.x, position.y, size.x, size.y);
 
-        batch.setColor(c.r, c.g, c.b, 1f);
+        batch.setColor(bgColor.r, bgColor.g, bgColor.b, 1f);
         batch.draw(texture, position.x, position.y, size.x, size.y);
 
         if (moveRadius > 0) {
@@ -61,8 +63,7 @@ public class Entity {
     }
 
     private void drawMoveRadius(SpriteBatch batch) {
-        Color c = batch.getColor();
-        batch.setColor(c.r, c.g, c.b, 0.7f);
+        batch.setColor(bgColor.r, bgColor.g, bgColor.b, 0.7f);
 
         for (int i = -moveRadius; i < moveRadius + 1; i++) {
             for (int j = -moveRadius; j < moveRadius + 1; j++) {
