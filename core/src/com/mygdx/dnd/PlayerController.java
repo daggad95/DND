@@ -12,13 +12,14 @@ import com.badlogic.gdx.math.Vector3;
  */
 public class PlayerController {
     private Controller controller;
+    private ControllerAdapter adapter;
     private Entity entity;
 
     public PlayerController(Controller c, Entity e) {
         controller = c;
         entity = e;
 
-        controller.addListener(new ControllerAdapter() {
+        adapter = new ControllerAdapter() {
 
             //Left joystick controls
             public boolean axisMoved(Controller controller, int axisCode, float value) {
@@ -50,6 +51,16 @@ public class PlayerController {
                 return true;
             }
 
-        });
+        };
+
+        controller.addListener(adapter);
+    }
+
+    public Entity getEntity() {
+        return entity;
+    }
+
+    public void dispose() {
+        controller.removeListener(adapter);
     }
 }

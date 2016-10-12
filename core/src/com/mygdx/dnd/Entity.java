@@ -56,8 +56,7 @@ public class Entity {
 
         moveRadius = 0;
         font = new BitmapFont();
-        Random rand = new Random();
-        bgColor = new Color(rand.nextFloat(), rand.nextFloat(), rand.nextFloat(), (float)1);
+        randColor();
 
         moving = new boolean[4];
         moving[Direction.RIGHT] = false;
@@ -190,5 +189,11 @@ public class Entity {
 
     public void setDead(boolean deathState) {
         dead = deathState;
+    }
+
+    //sets entity to a random color
+    public void randColor() {
+        Random rand = new Random();
+        bgColor = new Color(rand.nextFloat(), rand.nextFloat(), rand.nextFloat(), (float)1);
     }
 }

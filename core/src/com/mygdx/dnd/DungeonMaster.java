@@ -142,10 +142,14 @@ public class DungeonMaster {
                         int playerNum = Integer.parseInt(tk.nextToken());
                         setPlayer(playerNum);
                     }
+                } else if (mainCommand.equals("unsetplayer")) {
+                    unsetPlayer();
                 } else if (mainCommand.equals("kill")) {
                     setCEDeathState(true);
                 } else if (mainCommand.equals("unkill")) {
                     setCEDeathState(false);
+                } else if (mainCommand.equals("recolor")) {
+                    recolorCE();
                 }
 
             } catch (Exception e) {
@@ -163,8 +167,22 @@ public class DungeonMaster {
         }
     }
 
+    private void unsetPlayer() {
+        for (PlayerController pc : controllers) {
+            if (pc.getEntity() == currentEntity) {
+                pc.dispose();
+                controllers.remove(controllers.indexOf(pc));
+                currentEntity.randColor();
+                return;
+            }
+        }
+    }
     private void setCEDeathState(boolean state) {
         currentEntity.setDead(state);
+    }
+
+    private void recolorCE() {
+        currentEntity.randColor();
     }
 
     public void update(SpriteBatch batch) {
