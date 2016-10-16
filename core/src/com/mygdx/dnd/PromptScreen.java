@@ -62,7 +62,6 @@ public class PromptScreen extends ScreenAdapter {
     }
 
     public void render(float delta) {
-
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
@@ -73,6 +72,7 @@ public class PromptScreen extends ScreenAdapter {
     }
 
     public void show() {
+        stage.getViewport().update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false);
         Gdx.input.setInputProcessor(stage);
     }
 
@@ -90,6 +90,6 @@ public class PromptScreen extends ScreenAdapter {
     }
 
     public void resize (int width, int height) {
-        stage.getViewport().update(width, height, true);
+        stage.getViewport().update(width, height, false);
     }
 }

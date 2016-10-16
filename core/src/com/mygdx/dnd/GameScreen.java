@@ -18,8 +18,8 @@ import java.util.*;
 public class GameScreen extends ScreenAdapter {
 	SpriteBatch batch;
 	Map<String, Texture> textures;
-	Texture img;
 	OrthographicCamera camera;
+    OrthographicCamera hudCamera; //camera to draw HUD
 
 	List<Entity> players;
 
@@ -47,8 +47,7 @@ public class GameScreen extends ScreenAdapter {
 		float w = Gdx.graphics.getWidth();
 		float h = Gdx.graphics.getHeight();
 		camera = new OrthographicCamera(40, 40 * (h/w));
-
-		List<Entity> entities = new ArrayList<Entity>();
+        hudCamera = new OrthographicCamera(w, h);
 
 	}
 
@@ -80,7 +79,7 @@ public class GameScreen extends ScreenAdapter {
             }
         } else if (loadStage == 1) { //Loading players
                 loadStage++;
-                dm = new DungeonMaster(players, camera, textures, game);
+                dm = new DungeonMaster(players, camera, hudCamera, textures, game);
                 dmc = new DMController(dm, camera);
                 Gdx.input.setInputProcessor(dmc);
         } else { //Normal Game loop
@@ -105,6 +104,14 @@ public class GameScreen extends ScreenAdapter {
 
 	public void show() {
         Gdx.input.setInputProcessor(dmc);
+    }
+
+    public void resize(int width, int height) {
+        camera.viewportWidth = 40;
+        camera.viewportHeight = 40 * height / width;
+
+        hudCamera.viewportWidth = width;
+        hudCamera.viewportHeight = height;
     }
 
 }

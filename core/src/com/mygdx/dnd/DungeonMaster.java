@@ -26,6 +26,7 @@ public class DungeonMaster {
     List<PlayerController> controllers;
     Map<String, Texture> textures;
     private OrthographicCamera camera;
+    private OrthographicCamera hudCamera;
     private boolean cameraMoving[]; //determines whether camera is moving in 4 directions
     private Vector2 lastClicked; // last clicked position by dm
     private DND game;
@@ -33,10 +34,12 @@ public class DungeonMaster {
     private int actionState;
 
     public static final float CMR = 5; //camera movement rate in m/s
+    public static float CZS = 3; //speed at which the camera zooms
 
-    public DungeonMaster(List<Entity> entities, OrthographicCamera camera, Map<String, Texture> textures, DND game) {
+    public DungeonMaster(List<Entity> entities, OrthographicCamera camera, OrthographicCamera hudCamera, Map<String, Texture> textures, DND game) {
         this.entities = entities;
         this.camera = camera;
+        this.hudCamera = hudCamera;
         this.textures = textures;
         this.game = game;
         actionState = 0;
@@ -150,6 +153,13 @@ public class DungeonMaster {
                     setCEDeathState(false);
                 } else if (mainCommand.equals("recolor")) {
                     recolorCE();
+                } else if (mainCommand.equals("status")) {
+                    if (tk.hasMoreTokens()) {
+                        String status = tk.nextToken();
+                        setStatus(status);
+                    } else {
+                        setStatus("");
+                    }
                 }
 
             } catch (Exception e) {
@@ -185,17 +195,32 @@ public class DungeonMaster {
         currentEntity.randColor();
     }
 
+    private void setStatus(String status) { currentEntity.setStatus(status); }
+
     public void update(SpriteBatch batch) {
         if (actionState == States.NORMAL) {
             for (Entity e : entities) {
-                e.update(batch);
+                e.update(batch, camera, hudCamera);
             }
 
+
+            //conversion ratios for hud
+            float wc = hudCamera.viewportWidth / camera.viewportWidth;
+            float hc = hudCamera.viewportHeight / camera.viewportHeight;
+
             //camera movement
-            if (cameraMoving[Direction.RIGHT]) { camera.translate(CMR*Gdx.graphics.getDeltaTime(), 0, 0); }
-            if (cameraMoving[Direction.LEFT]) { camera.translate(-CMR*Gdx.graphics.getDeltaTime(), 0, 0); }
-            if (cameraMoving[Direction.UP]) { camera.translate(0, CMR*Gdx.graphics.getDeltaTime(), 0); }
-            if (cameraMoving[Direction.DOWN]) { camera.translate(0, -CMR*Gdx.graphics.getDeltaTime(), 0); }
+            if (cameraMoving[Direction.RIGHT]) {
+                camera.translate(CMR*Gdx.graphics.getDeltaTime(), 0, 0);
+            }
+            if (cameraMoving[Direction.LEFT]) {
+                camera.translate(-CMR*Gdx.graphics.getDeltaTime(), 0, 0);
+            }
+            if (cameraMoving[Direction.UP]) {
+                camera.translate(0, CMR*Gdx.graphics.getDeltaTime(), 0);
+            }
+            if (cameraMoving[Direction.DOWN]) {
+                camera.translate(0, -CMR*Gdx.graphics.getDeltaTime(), 0);
+            }
             camera.update();
         } else if (actionState == States.SPAWN_ENTITY) {
             spawnEntity(game.getPromptScreen().getResponse());
@@ -225,5 +250,11 @@ public class DungeonMaster {
     public void getCommand() {
         game.getPromptScreen().prompt("Enter Command");
         actionState = States.GET_COMMAND;
+    }
+
+    public void zoomCamera(int amount) {
+        camera.zoom += CZS * Gdx.graphics.getDeltaTime() * amount;
+        hudCamera.zoom += CZS * Gdx.graphics.getDeltaTime() * amount;
+        camera.update();
     }
 }

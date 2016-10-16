@@ -13,7 +13,6 @@ import com.badlogic.gdx.math.Vector3;
 public class DMController extends InputAdapter {
     private DungeonMaster dungeonMaster;
     private OrthographicCamera camera;
-    public static float CZS = 3; //speed at which the camera zooms
 
     public DMController(DungeonMaster dm, OrthographicCamera c) {
         this.dungeonMaster = dm;
@@ -109,8 +108,7 @@ public class DMController extends InputAdapter {
 
     //zoom camera on scroll
     public boolean scrolled(int amount) {
-        camera.zoom += CZS * Gdx.graphics.getDeltaTime() * amount;
-        camera.update();
+        dungeonMaster.zoomCamera(amount);
         return true;
     }
 }

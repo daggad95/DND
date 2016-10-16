@@ -1,13 +1,16 @@
 package com.mygdx.dnd;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Select;
 
+import java.awt.*;
 import java.util.Map;
 import java.util.Random;
 
@@ -46,6 +49,7 @@ public class Entity {
 
     //stats
     protected boolean dead;
+    protected String status;
 
 
     public Entity(Vector2 position, Vector2 size, String textureName, Map<String, Texture> textures) {
@@ -71,13 +75,15 @@ public class Entity {
         selected = false;
 
         dead = false;
+        status = "";
     }
 
-    public void update(SpriteBatch batch) {
+    public void update(SpriteBatch batch, OrthographicCamera camera, OrthographicCamera hudCamera) {
         if (selected) {
             pulse();
         }
 
+        //drawing background box
         batch.setColor(bgColor.r, bgColor.g, bgColor.b, bgAlpha);
         if (selected) {
             batch.draw(textures.get(BG_TEXTURE), position.x - SELECT_BOX_RADIUS, position.y - SELECT_BOX_RADIUS,
@@ -86,6 +92,7 @@ public class Entity {
             batch.draw(textures.get(BG_TEXTURE), position.x, position.y, size.x, size.y);
         }
 
+        //drawing sprite
         batch.setColor(bgColor.r, bgColor.g, bgColor.b, 1f);
         batch.draw(textures.get(textureName), position.x, position.y, size.x, size.y);
 
@@ -96,6 +103,10 @@ public class Entity {
 
         if (moveRadius > 0) {
             drawMoveRadius(batch);
+        }
+
+        if (!status.equals("")) {
+            drawStatus(batch, camera, hudCamera);
         }
 
         timer += Gdx.graphics.getDeltaTime();
@@ -112,6 +123,24 @@ public class Entity {
                 }
             }
         }
+    }
+
+    private void drawStatus(SpriteBatch batch, OrthographicCamera camera, OrthographicCamera hudCamera) {
+        BitmapFont font = new BitmapFont();
+
+        //conversion ratios for hud
+        float wc = hudCamera.viewportWidth / camera.viewportWidth;
+        float hc = hudCamera.viewportHeight / camera.viewportHeight;
+
+        hudCamera.position.x = camera.position.x * wc;
+        hudCamera.position.y = camera.position.y * hc;
+        hudCamera.update();
+
+        batch.setProjectionMatrix(hudCamera.combined);
+        font.draw(batch, status, position.x * wc, position.y * hc);
+        batch.setProjectionMatrix(camera.combined);
+
+        font.dispose();
     }
 
     public void setMoving(int direction, boolean value) {
@@ -161,13 +190,13 @@ public class Entity {
 
     public void pulse() {
         if (pulseDirection == Direction.DOWN) {
-            if (Math.abs(MIN_PULSE - bgAlpha) > 0.01) {
+            if (Math.abs(MIN_PULSE - bgAlpha) > 0.01 && bgAlpha > MIN_PULSE) {
                 bgAlpha -= PULSE_RATE * Gdx.graphics.getDeltaTime();
             } else {
                 pulseDirection = Direction.UP;
             }
         } else {
-            if (Math.abs(MAX_PULSE - bgAlpha) > 0.01) {
+            if (Math.abs(MAX_PULSE - bgAlpha) > 0.01 && bgAlpha < MAX_PULSE) {
                 bgAlpha += PULSE_RATE * Gdx.graphics.getDeltaTime();
             } else {
                 pulseDirection = Direction.DOWN;
@@ -195,5 +224,9 @@ public class Entity {
     public void randColor() {
         Random rand = new Random();
         bgColor = new Color(rand.nextFloat(), rand.nextFloat(), rand.nextFloat(), (float)1);
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
