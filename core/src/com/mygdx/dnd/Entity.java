@@ -229,4 +229,16 @@ public class Entity {
     public void setStatus(String status) {
         this.status = status;
     }
+
+    public Vector2 getSize() {
+        return size;
+    }
+
+    public Vector2 getPosition() {
+        return position;
+    }
+
+    public String getTextureName() {
+        return textureName;
+    }
 }

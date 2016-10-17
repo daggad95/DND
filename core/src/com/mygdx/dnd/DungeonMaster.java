@@ -4,12 +4,14 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.controllers.Controllers;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -160,7 +162,18 @@ public class DungeonMaster {
                     } else {
                         setStatus("");
                     }
+                } else if (mainCommand.equals("save")) {
+                    if (tk.hasMoreTokens()) {
+                        String fileName = tk.nextToken();
+                        save(fileName);
+                    }
+                } else if (mainCommand.equals("load")) {
+                    if (tk.hasMoreTokens()) {
+                        String fileName = tk.nextToken();
+                        load(fileName);
+                    }
                 }
+
 
             } catch (Exception e) {
                 System.out.println(e);
@@ -196,6 +209,38 @@ public class DungeonMaster {
     }
 
     private void setStatus(String status) { currentEntity.setStatus(status); }
+
+    private void save(String fileName) {
+        FileHandle fh = Gdx.files.local("saves/" + fileName + ".save");
+
+        //clearing file
+        fh.writeString("", false);
+
+        for (Entity e : entities) {
+            String line = e.getTextureName() + ";" + e.getPosition().x + ";"
+                    + e.getPosition().y + ";" + e.getSize().x + ";" + e.getSize().y + "\n";
+            fh.writeString(line, true);
+        }
+    }
+
+    private void load(String fileName) {
+        FileHandle fh = Gdx.files.local("saves/" + fileName + ".save");
+
+        StringTokenizer lineTokenizer = new StringTokenizer(fh.readString(), "\n");
+
+        while(lineTokenizer.hasMoreTokens()) {
+            String line = lineTokenizer.nextToken();
+            StringTokenizer entityTokenizer = new StringTokenizer(line, ";");
+
+            String texture = entityTokenizer.nextToken();
+            float x = Float.parseFloat(entityTokenizer.nextToken());
+            float y = Float.parseFloat(entityTokenizer.nextToken());
+            float w = Float.parseFloat(entityTokenizer.nextToken());
+            float h = Float.parseFloat(entityTokenizer.nextToken());
+
+            entities.add(new Entity(new Vector2(x, y), new Vector2(w, h), texture, textures));
+        }
+    }
 
     public void update(SpriteBatch batch) {
         if (actionState == States.NORMAL) {
