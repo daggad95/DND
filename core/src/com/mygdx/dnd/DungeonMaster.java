@@ -35,7 +35,7 @@ public class DungeonMaster {
 
     private int actionState;
 
-    public static final float CMR = 5; //camera movement rate in m/s
+    public static final float CMR = 10; //camera movement rate in m/s
     public static float CZS = 3; //speed at which the camera zooms
 
     public DungeonMaster(List<Entity> entities, OrthographicCamera camera, OrthographicCamera hudCamera, Map<String, Texture> textures, DND game) {
@@ -255,16 +255,16 @@ public class DungeonMaster {
 
             //camera movement
             if (cameraMoving[Direction.RIGHT]) {
-                camera.translate(CMR*Gdx.graphics.getDeltaTime(), 0, 0);
+                camera.translate(CMR*Gdx.graphics.getDeltaTime() * camera.zoom, 0, 0);
             }
             if (cameraMoving[Direction.LEFT]) {
-                camera.translate(-CMR*Gdx.graphics.getDeltaTime(), 0, 0);
+                camera.translate(-CMR*Gdx.graphics.getDeltaTime() * camera.zoom, 0, 0);
             }
             if (cameraMoving[Direction.UP]) {
-                camera.translate(0, CMR*Gdx.graphics.getDeltaTime(), 0);
+                camera.translate(0, CMR*Gdx.graphics.getDeltaTime() * camera.zoom, 0);
             }
             if (cameraMoving[Direction.DOWN]) {
-                camera.translate(0, -CMR*Gdx.graphics.getDeltaTime(), 0);
+                camera.translate(0, -CMR*Gdx.graphics.getDeltaTime() * camera.zoom, 0);
             }
             camera.update();
         } else if (actionState == States.SPAWN_ENTITY) {
