@@ -25,9 +25,11 @@ public class Entity {
     protected Color bgColor;
 
     protected boolean[] moving; //used to determine which direction players is moving
+    protected boolean[] cameraMoving;
     protected float timer; //used to control movement
     protected float lastMove; //time at which the entity last moved
     public static final float moveInterval = 0.25f; //time in seconds required before next move
+    public static final float CMR = 10; //camera movement rate in m/s
 
     protected int moveRadius;
 
@@ -67,6 +69,12 @@ public class Entity {
         moving[Direction.LEFT] = false;
         moving[Direction.UP] = false;
         moving[Direction.DOWN] = false;
+
+        cameraMoving = new boolean[4];
+        cameraMoving[Direction.RIGHT] = false;
+        cameraMoving[Direction.LEFT] = false;
+        cameraMoving[Direction.UP] = false;
+        cameraMoving[Direction.DOWN] = false;
 
         lastMove = 0;
 
@@ -111,6 +119,7 @@ public class Entity {
 
         timer += Gdx.graphics.getDeltaTime();
         move();
+        moveCamera(camera);
     }
 
     private void drawMoveRadius(SpriteBatch batch) {
@@ -147,6 +156,10 @@ public class Entity {
         moving[direction] = value;
     }
 
+    public void setCameraMoving(int direction, boolean value) {
+        cameraMoving[direction] = value;
+    }
+
     private void move() {
         if (timer > lastMove + moveInterval) {
             if (moving[Direction.LEFT]) {
@@ -180,6 +193,22 @@ public class Entity {
             }
 
         }
+    }
+
+    private void moveCamera(OrthographicCamera camera) {
+        if (cameraMoving[Direction.RIGHT]) {
+            camera.translate(CMR*Gdx.graphics.getDeltaTime() * camera.zoom, 0, 0);
+        }
+        if (cameraMoving[Direction.LEFT]) {
+            camera.translate(-CMR*Gdx.graphics.getDeltaTime() * camera.zoom, 0, 0);
+        }
+        if (cameraMoving[Direction.UP]) {
+            camera.translate(0, CMR*Gdx.graphics.getDeltaTime() * camera.zoom, 0);
+        }
+        if (cameraMoving[Direction.DOWN]) {
+            camera.translate(0, -CMR*Gdx.graphics.getDeltaTime() * camera.zoom, 0);
+        }
+        camera.update();
     }
 
     public void changeMoveRadius(int deltaRadius) {

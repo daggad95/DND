@@ -21,8 +21,9 @@ public class PlayerController {
 
         adapter = new ControllerAdapter() {
 
-            //Left joystick controls
+            //Left && right joystick controls
             public boolean axisMoved(Controller controller, int axisCode, float value) {
+                //entity movement
                if (controller.getAxis(Xbox360Pad.AXIS_LEFT_X) < -0.5) { //LEFT
                    entity.setMoving(Direction.LEFT, true);
                } if (controller.getAxis(Xbox360Pad.AXIS_LEFT_X) > 0.5) { //RIGHT
@@ -37,7 +38,24 @@ public class PlayerController {
                    entity.setMoving(Direction.RIGHT, false);
                    entity.setMoving(Direction.UP, false);
                    entity.setMoving(Direction.DOWN, false);
-               }
+               } 
+               
+               //camera movement
+               if (controller.getAxis(Xbox360Pad.AXIS_RIGHT_X) < -0.5) { //LEFT
+                    entity.setCameraMoving(Direction.LEFT, true);
+                } if (controller.getAxis(Xbox360Pad.AXIS_RIGHT_X) > 0.5) { //RIGHT
+                    entity.setCameraMoving(Direction.RIGHT, true);
+                } else if (controller.getAxis(Xbox360Pad.AXIS_RIGHT_Y) > 0.5) { //DOWN
+                    entity.setCameraMoving(Direction.DOWN, true);
+                } else if (controller.getAxis(Xbox360Pad.AXIS_RIGHT_Y) < -0.5) { //UP
+                    entity.setCameraMoving(Direction.UP, true);
+                } else if(Math.abs(controller.getAxis(Xbox360Pad.AXIS_RIGHT_X)) < 0.3 &&
+                        Math.abs(controller.getAxis(Xbox360Pad.AXIS_RIGHT_Y)) < 0.3) {
+                    entity.setCameraMoving(Direction.LEFT, false);
+                    entity.setCameraMoving(Direction.RIGHT, false);
+                    entity.setCameraMoving(Direction.UP, false);
+                    entity.setCameraMoving(Direction.DOWN, false);
+                }
 
                return true;
             }
