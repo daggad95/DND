@@ -6,16 +6,16 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.FPSLogger;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.Vector2;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.*;
 
 /**
  * Created by David on 10/2/2016.
@@ -23,6 +23,8 @@ import java.util.StringTokenizer;
  * entities on the field
  */
 public class DungeonMaster {
+    private ArrayList<Vector2> wallPositions;
+    private TiledMap map;
     private Entity currentEntity;
     private List<Entity> entities;
     List<PlayerController> controllers;
@@ -32,18 +34,24 @@ public class DungeonMaster {
     private boolean cameraMoving[]; //determines whether camera is moving in 4 directions
     private Vector2 lastClicked; // last clicked position by dm
     private DND game;
+    private boolean fow; //determines if fow is being drawn
+    FPSLogger logger;
+
+    protected static final String FOG_TEXTURE = "whitebox"; //name of background texture
 
     private int actionState;
 
     public static final float CMR = 10; //camera movement rate in m/s
     public static float CZS = 3; //speed at which the camera zooms
 
-    public DungeonMaster(List<Entity> entities, OrthographicCamera camera, OrthographicCamera hudCamera, Map<String, Texture> textures, DND game) {
+    public DungeonMaster(List<Entity> entities, OrthographicCamera camera, OrthographicCamera hudCamera, Map<String, Texture> textures, DND game, TiledMap map) {
         this.entities = entities;
         this.camera = camera;
         this.hudCamera = hudCamera;
         this.textures = textures;
         this.game = game;
+        this.map = map;
+        logger = new FPSLogger();
         actionState = 0;
         controllers = new ArrayList<PlayerController>();
 
@@ -52,6 +60,20 @@ public class DungeonMaster {
         cameraMoving[Direction.DOWN] = false;
         cameraMoving[Direction.LEFT] = false;
         cameraMoving[Direction.RIGHT] = false;
+
+        //loading position of walls in map to be used for line of sight
+        TiledMapTileLayer wallLayer = (TiledMapTileLayer) map.getLayers().get("Walls");
+        wallPositions = new ArrayList<Vector2>();
+        if (wallLayer != null) {
+            for (int i = 0; i < wallLayer.getWidth(); i++) {
+                for (int j = 0; j < wallLayer.getWidth(); j++) {
+                    if (wallLayer.getCell(i, j) != null) {
+                        wallPositions.add(new Vector2(i, j));
+                    }
+                }
+            }
+        }
+
     }
 
     public boolean entityAt(Vector2 p) {
@@ -124,7 +146,7 @@ public class DungeonMaster {
 
                 for(int x = 0; x < numEntities; x++){
                     lastClicked.add(1, 0);
-                    Entity e = new Entity(new Vector2(lastClicked), new Vector2(width, height), name, textures);
+                    Entity e = new Entity(new Vector2(lastClicked), new Vector2(width, height), name, textures, wallPositions);
                     entities.add(e);
                 }
                 setCurrentEntity(entities.get(entities.size() - 1));
@@ -172,6 +194,8 @@ public class DungeonMaster {
                         String fileName = tk.nextToken();
                         load(fileName);
                     }
+                } else if (mainCommand.equals("fow")) {
+                    fow();
                 }
 
 
@@ -187,6 +211,7 @@ public class DungeonMaster {
         if (Controllers.getControllers().size >= playerNum) {
             controllers.add(new PlayerController(Controllers.getControllers().get(playerNum - 1), currentEntity));
             currentEntity.setBgColor(Color.WHITE);
+            currentEntity.setPlayer(true);
         }
     }
 
@@ -196,6 +221,7 @@ public class DungeonMaster {
                 pc.dispose();
                 controllers.remove(controllers.indexOf(pc));
                 currentEntity.randColor();
+                currentEntity.setPlayer(false);
                 return;
             }
         }
@@ -238,16 +264,25 @@ public class DungeonMaster {
             float w = Float.parseFloat(entityTokenizer.nextToken());
             float h = Float.parseFloat(entityTokenizer.nextToken());
 
-            entities.add(new Entity(new Vector2(x, y), new Vector2(w, h), texture, textures));
+            entities.add(new Entity(new Vector2(x, y), new Vector2(w, h), texture, textures, wallPositions));
         }
     }
 
+    private void fow() {
+        fow = !fow;
+    }
+
     public void update(SpriteBatch batch) {
+        logger.log();
+
         if (actionState == States.NORMAL) {
             for (Entity e : entities) {
                 e.update(batch, camera, hudCamera);
             }
 
+            if (fow) {
+                drawFOW(batch);
+            }
 
             //conversion ratios for hud
             float wc = hudCamera.viewportWidth / camera.viewportWidth;
@@ -301,5 +336,39 @@ public class DungeonMaster {
         camera.zoom += CZS * Gdx.graphics.getDeltaTime() * amount;
         hudCamera.zoom += CZS * Gdx.graphics.getDeltaTime() * amount;
         camera.update();
+    }
+
+    //compiles a map of all players field of views
+    private ArrayList<Vector2> getPlayersFOV() {
+        ArrayList<Vector2> viewedTiles = new ArrayList<Vector2>();
+
+        for (Entity e : entities) {
+            //if (e.isPlayer()) {
+                for (Vector2 tilePos : e.getFOV()) {
+                    viewedTiles.add(tilePos);
+                }
+            //}
+        }
+        return viewedTiles;
+    }
+
+    //draws fog of war based on players line of sight
+    private void drawFOW(SpriteBatch batch) {
+        ArrayList<Vector2> viewedTiles = getPlayersFOV();
+
+        float width = camera.viewportWidth;
+        float height = camera.viewportHeight;
+        float x = camera.position.x;
+        float y = camera.position.y;
+
+        batch.setColor(10, 10, 10, 0.5f);
+
+        for (int i = (int)(x - width / 1.5); i < (int)(x + width / 1.5); i++) {
+            for (int j = (int)(y- height / 1.5); j < (int)(y + height / 1.5); j++) {
+                if (!viewedTiles.contains(new Vector2(i, j))) {
+                    batch.draw(textures.get(FOG_TEXTURE), i, j, 1, 1);
+                }
+            }
+        }
     }
 }

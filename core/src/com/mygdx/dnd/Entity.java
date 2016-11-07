@@ -7,10 +7,12 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Select;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Random;
 
@@ -23,6 +25,8 @@ public class Entity {
     protected Vector2 size;
     protected BitmapFont font;
     protected Color bgColor;
+    protected ArrayList<Vector2> wallPositions;
+    protected ArrayList<Vector2> viewedTiles;
 
     protected boolean[] moving; //used to determine which direction players is moving
     protected boolean[] cameraMoving;
@@ -32,6 +36,7 @@ public class Entity {
     public static final float CMR = 10; //camera movement rate in m/s
 
     protected int moveRadius;
+    protected Vector2 moveRadiusCenter;
 
     //pulse animation stuff
     protected static final float DEFAULT_ALPHA = 0.3f;
@@ -52,13 +57,15 @@ public class Entity {
     //stats
     protected boolean dead;
     protected String status;
+    protected boolean player;
 
 
-    public Entity(Vector2 position, Vector2 size, String textureName, Map<String, Texture> textures) {
+    public Entity(Vector2 position, Vector2 size, String textureName, Map<String, Texture> textures, ArrayList<Vector2> wallPositions) {
         this.position = position;
         this.size = size;
         this.textures = textures;
         this.textureName = textureName;
+        this.wallPositions = wallPositions;
 
         moveRadius = 0;
         font = new BitmapFont();
@@ -84,6 +91,10 @@ public class Entity {
 
         dead = false;
         status = "";
+        player = false;
+        viewedTiles = new ArrayList<Vector2>();
+
+        setFOV();
     }
 
     public void update(SpriteBatch batch, OrthographicCamera camera, OrthographicCamera hudCamera) {
@@ -122,16 +133,69 @@ public class Entity {
         moveCamera(camera);
     }
 
-    private void drawMoveRadius(SpriteBatch batch) {
-        batch.setColor(bgColor.r, bgColor.g, bgColor.b, 0.7f);
+    private void setMoveRadius(int moveRange, int direction, Vector2 pos, boolean wasDiagonal, ArrayList path) {
+        if (!path.contains(pos) || pos.epsilonEquals(moveRadiusCenter, 0.9f)) {
+            if (moveRange >= 0) {
+                path.add(pos);
 
-        for (int i = -moveRadius; i < moveRadius + 1; i++) {
-            for (int j = -moveRadius; j < moveRadius + 1; j++) {
-                if (Math.abs(i) + Math.abs(j) <= moveRadius && Math.abs(i) + Math.abs(j) != 0) {
-                    batch.draw(textures.get(BG_TEXTURE), position.x + i, position.y + j, 1, 1);
+                if (direction == Direction.UP_RIGHT) {
+                    if (wasDiagonal) {
+                        setMoveRadius(moveRange - 2, Direction.UP_RIGHT, new Vector2(pos).add(1, 1), false, path);
+                    } else {
+                        setMoveRadius(moveRange - 1, Direction.UP_RIGHT, new Vector2(pos).add(1, 1), true, path);
+                    }
+                    setMoveRadius(moveRange - 1, Direction.UP_RIGHT, new Vector2(pos).add(1, 0), wasDiagonal, path);
+                    setMoveRadius(moveRange - 1, Direction.UP_RIGHT, new Vector2(pos).add(0, 1), wasDiagonal, path);
+                }
+                if (direction == Direction.UP_LEFT) {
+                    if (wasDiagonal) {
+                        setMoveRadius(moveRange - 2, Direction.UP_LEFT, new Vector2(pos).add(-1, 1), false, path);
+                    } else {
+                        setMoveRadius(moveRange - 1, Direction.UP_LEFT, new Vector2(pos).add(-1, 1), true, path);
+                    }
+                    setMoveRadius(moveRange - 1, Direction.UP_LEFT, new Vector2(pos).add(-1, 0), wasDiagonal, path);
+                    setMoveRadius(moveRange - 1, Direction.UP_LEFT, new Vector2(pos).add(0, 1), wasDiagonal, path);
+
+                }
+                if (direction == Direction.DOWN_LEFT) {
+                    if (wasDiagonal) {
+                        setMoveRadius(moveRange - 2, Direction.DOWN_LEFT, new Vector2(pos).add(-1, -1), false, path);
+                    } else {
+                        setMoveRadius(moveRange - 1, Direction.DOWN_LEFT, new Vector2(pos).add(-1, -1), true, path);
+                    }
+                    setMoveRadius(moveRange - 1, Direction.DOWN_LEFT, new Vector2(pos).add(-1, 0), wasDiagonal, path);
+                    setMoveRadius(moveRange - 1, Direction.DOWN_LEFT, new Vector2(pos).add(0, -1), wasDiagonal, path);
+
+                }
+                if (direction == Direction.DOWN_RIGHT) {
+                    if (wasDiagonal) {
+                        setMoveRadius(moveRange - 2, Direction.DOWN_RIGHT, new Vector2(pos).add(1, -1), false, path);
+                    } else {
+                        setMoveRadius(moveRange - 1, Direction.DOWN_RIGHT, new Vector2(pos).add(1, -1), true, path);
+                    }
+                    setMoveRadius(moveRange - 1, Direction.DOWN_RIGHT, new Vector2(pos).add(1, 0), wasDiagonal, path);
+                    setMoveRadius(moveRange - 1, Direction.DOWN_RIGHT, new Vector2(pos).add(0, -1), wasDiagonal, path);
                 }
             }
         }
+    }
+
+    private void drawMoveRadius(SpriteBatch batch) {
+        batch.setColor(bgColor.r, bgColor.g, bgColor.b, 0.7f);
+
+        ArrayList<Vector2> path = new ArrayList<Vector2>();
+
+        setMoveRadius(moveRadius, Direction.UP_RIGHT, moveRadiusCenter, false, path);
+        setMoveRadius(moveRadius, Direction.DOWN_RIGHT, moveRadiusCenter, false, path);
+        setMoveRadius(moveRadius, Direction.UP_LEFT, moveRadiusCenter, false, path);
+        setMoveRadius(moveRadius, Direction.DOWN_LEFT, moveRadiusCenter, false, path);
+        
+        for (Vector2 pos : path) {
+            if (!pos.epsilonEquals(moveRadiusCenter, 0.9f)) {
+                batch.draw(textures.get(BG_TEXTURE), pos.x, pos.y, 1, 1);
+            }
+        }
+
     }
 
     private void drawStatus(SpriteBatch batch, OrthographicCamera camera, OrthographicCamera hudCamera) {
@@ -165,33 +229,20 @@ public class Entity {
             if (moving[Direction.LEFT]) {
                 position.x -= 1;
                 lastMove = timer;
-
-                if (moveRadius > 0) {
-                    moveRadius--;
-                }
+                setFOV();
             } else if (moving[Direction.RIGHT]) {
                 position.x += 1;
                 lastMove = timer;
-
-                if (moveRadius > 0) {
-                    moveRadius--;
-                }
+                setFOV();
             } else if (moving[Direction.UP]) {
                 position.y += 1;
                 lastMove = timer;
-
-                if (moveRadius > 0) {
-                    moveRadius--;
-                }
+                setFOV();
             } else if (moving[Direction.DOWN]) {
                 position.y -= 1;
                 lastMove = timer;
-
-                if (moveRadius > 0) {
-                    moveRadius--;
-                }
+                setFOV();
             }
-
         }
     }
 
@@ -213,7 +264,15 @@ public class Entity {
 
     public void changeMoveRadius(int deltaRadius) {
         if (!(deltaRadius < 0 && moveRadius == 0)) {
+            if (moveRadius == 0) {
+                moveRadiusCenter = new Vector2(position);
+
+            }
             moveRadius += deltaRadius;
+            status = Integer.toString(moveRadius * 5) + " ft";
+        }
+        if (moveRadius == 0){
+            status = "";
         }
     }
 
@@ -269,5 +328,77 @@ public class Entity {
 
     public String getTextureName() {
         return textureName;
+    }
+
+    public int getMoveRadius() { return moveRadius; }
+
+    public void setPlayer(boolean status) {
+        player = status;
+    }
+
+    public boolean isPlayer() {
+        return player;
+    }
+
+    private boolean viewBlocked(Vector2 pos) {
+        for (Vector2 wallPos : wallPositions) {
+            if (pos.epsilonEquals(wallPos, 0.9f)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void checkFOV(Vector2 endPoint) {
+        float dx = endPoint.x - position.x;
+        float dy = endPoint.y - position.y;
+
+        float steps;
+        if (Math.abs(dx) > Math.abs(dy)) {
+            steps = Math.abs(dx);
+        } else {
+            steps = Math.abs(dy);
+        }
+
+        float deltaX = dx / steps;
+        float deltaY = dy / steps;
+
+        Vector2 checkPoint = new Vector2(position);
+        for (int j = 0; j < steps; j++) {
+            if (!viewedTiles.contains(checkPoint)) {
+                viewedTiles.add(new Vector2((int)checkPoint.x, (int)checkPoint.y));
+            }
+
+            if (viewBlocked(checkPoint)) {
+                break;
+            }
+            checkPoint.add(deltaX, deltaY);
+        }
+    }
+
+
+    public void setFOV() {
+        int viewRange = 20;
+        viewedTiles.clear();
+
+
+        for (int i = -viewRange; i <= viewRange; i++) {
+            Vector2 endPointTop = new Vector2(position).add(i, viewRange);
+            Vector2 endPointBottom = new Vector2(position).add(i, -viewRange);
+            Vector2 endPointLeft = new Vector2(position).add(-viewRange, i);
+            Vector2 endPointRight = new Vector2(position).add(viewRange, i);
+
+            checkFOV(endPointTop);
+            checkFOV(endPointBottom);
+            checkFOV(endPointLeft);
+            checkFOV(endPointRight);
+        }
+
+
+    }
+
+    public ArrayList<Vector2> getFOV() {
+        return viewedTiles;
     }
 }

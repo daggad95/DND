@@ -65,6 +65,8 @@ public class PlayerController {
                     entity.changeMoveRadius(1);
                 } else if (buttonCode == Xbox360Pad.BUTTON_X) {
                     entity.changeMoveRadius(-1);
+                } else if (buttonCode == Xbox360Pad.BUTTON_B) {
+                    entity.changeMoveRadius(-entity.getMoveRadius());
                 }
                 return true;
             }

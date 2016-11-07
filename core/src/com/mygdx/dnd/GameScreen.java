@@ -79,7 +79,7 @@ public class GameScreen extends ScreenAdapter {
             }
         } else if (loadStage == 1) { //Loading players
                 loadStage++;
-                dm = new DungeonMaster(players, camera, hudCamera, textures, game);
+                dm = new DungeonMaster(players, camera, hudCamera, textures, game, map);
                 dmc = new DMController(dm, camera);
                 Gdx.input.setInputProcessor(dmc);
         } else { //Normal Game loop
