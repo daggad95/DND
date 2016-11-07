@@ -339,13 +339,13 @@ public class DungeonMaster {
     }
 
     //compiles a map of all players field of views
-    private HashMap<Vector2, Boolean>  getPlayersFOV() {
-        HashMap<Vector2, Boolean> viewedTiles = new HashMap<Vector2, Boolean>();
+    private ArrayList<Vector2> getPlayersFOV() {
+        ArrayList<Vector2> viewedTiles = new ArrayList<Vector2>();
 
         for (Entity e : entities) {
             //if (e.isPlayer()) {
-                for (Vector2 tilePos : e.getFOV().keySet()) {
-                    viewedTiles.put(tilePos, e.getFOV().get(tilePos));
+                for (Vector2 tilePos : e.getFOV()) {
+                    viewedTiles.add(tilePos);
                 }
             //}
         }
@@ -354,18 +354,18 @@ public class DungeonMaster {
 
     //draws fog of war based on players line of sight
     private void drawFOW(SpriteBatch batch) {
-        HashMap<Vector2, Boolean> viewedTiles = getPlayersFOV();
+        ArrayList<Vector2> viewedTiles = getPlayersFOV();
 
-        float width = camera.viewportWidth*camera.zoom;
-        float height = camera.viewportHeight*camera.zoom;
+        float width = camera.viewportWidth;
+        float height = camera.viewportHeight;
         float x = camera.position.x;
         float y = camera.position.y;
 
-        batch.setColor(Color.BLACK);
+        batch.setColor(10, 10, 10, 0.5f);
 
         for (int i = (int)(x - width / 1.5); i < (int)(x + width / 1.5); i++) {
             for (int j = (int)(y- height / 1.5); j < (int)(y + height / 1.5); j++) {
-                if (!viewedTiles.containsKey(new Vector2(i, j))) {
+                if (!viewedTiles.contains(new Vector2(i, j))) {
                     batch.draw(textures.get(FOG_TEXTURE), i, j, 1, 1);
                 }
             }
