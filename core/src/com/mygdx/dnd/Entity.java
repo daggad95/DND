@@ -13,6 +13,7 @@ import com.badlogic.gdx.utils.Select;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
@@ -26,7 +27,7 @@ public class Entity {
     protected BitmapFont font;
     protected Color bgColor;
     protected ArrayList<Vector2> wallPositions;
-    protected ArrayList<Vector2> viewedTiles;
+    protected HashMap<Vector2, Boolean> viewedTiles;
 
     protected boolean[] moving; //used to determine which direction players is moving
     protected boolean[] cameraMoving;
@@ -92,7 +93,7 @@ public class Entity {
         dead = false;
         status = "";
         player = false;
-        viewedTiles = new ArrayList<Vector2>();
+        viewedTiles = new HashMap<Vector2, Boolean>();
 
         setFOV();
     }
@@ -366,8 +367,8 @@ public class Entity {
 
         Vector2 checkPoint = new Vector2(position);
         for (int j = 0; j < steps; j++) {
-            if (!viewedTiles.contains(checkPoint)) {
-                viewedTiles.add(new Vector2((int)checkPoint.x, (int)checkPoint.y));
+            if (!viewedTiles.containsKey(checkPoint)) {
+                viewedTiles.put(new Vector2((int)checkPoint.x, (int)checkPoint.y), true);
             }
 
             if (viewBlocked(checkPoint)) {
@@ -379,11 +380,11 @@ public class Entity {
 
 
     public void setFOV() {
-        int viewRange = 20;
+        int viewRange = 40;
         viewedTiles.clear();
 
 
-        for (int i = -viewRange; i <= viewRange; i++) {
+        /*for (int i = -viewRange; i <= viewRange; i++) {
             Vector2 endPointTop = new Vector2(position).add(i, viewRange);
             Vector2 endPointBottom = new Vector2(position).add(i, -viewRange);
             Vector2 endPointLeft = new Vector2(position).add(-viewRange, i);
@@ -393,12 +394,19 @@ public class Entity {
             checkFOV(endPointBottom);
             checkFOV(endPointLeft);
             checkFOV(endPointRight);
+        }*/
+
+        for (int i = -viewRange; i <= viewRange; i++) {
+            for (int j = -viewRange; j <= viewRange; j++) {
+                Vector2 endPoint = new Vector2(position).add(i, j);
+                checkFOV(endPoint);
+            }
         }
 
 
     }
 
-    public ArrayList<Vector2> getFOV() {
+    public HashMap<Vector2, Boolean> getFOV() {
         return viewedTiles;
     }
 }
