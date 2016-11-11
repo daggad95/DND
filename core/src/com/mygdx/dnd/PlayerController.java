@@ -23,38 +23,68 @@ public class PlayerController {
 
             //Left && right joystick controls
             public boolean axisMoved(Controller controller, int axisCode, float value) {
+                
                 //entity movement
-               if (controller.getAxis(Xbox360Pad.AXIS_LEFT_X) < -0.5) { //LEFT
-                   entity.setMoving(Direction.LEFT, true);
-               } if (controller.getAxis(Xbox360Pad.AXIS_LEFT_X) > 0.5) { //RIGHT
-                   entity.setMoving(Direction.RIGHT, true);
-               } else if (controller.getAxis(Xbox360Pad.AXIS_LEFT_Y) > 0.5) { //DOWN
-                   entity.setMoving(Direction.DOWN, true);
-               } else if (controller.getAxis(Xbox360Pad.AXIS_LEFT_Y) < -0.5) { //UP
-                   entity.setMoving(Direction.UP, true);
-               } else if(Math.abs(controller.getAxis(Xbox360Pad.AXIS_LEFT_X)) < 0.3 &&
-                       Math.abs(controller.getAxis(Xbox360Pad.AXIS_LEFT_Y)) < 0.3) {
-                   entity.setMoving(Direction.LEFT, false);
-                   entity.setMoving(Direction.RIGHT, false);
-                   entity.setMoving(Direction.UP, false);
-                   entity.setMoving(Direction.DOWN, false);
-               } 
-               
+                if (controller.getAxis(Xbox360Pad.AXIS_LEFT_X) < -0.5) { //LEFT
+                    entity.setMoving(Direction.LEFT, true);
+                } else {
+                    entity.setMoving(Direction.LEFT, false);
+                }
+
+                if (controller.getAxis(Xbox360Pad.AXIS_LEFT_X) > 0.5) { //RIGHT
+                    entity.setMoving(Direction.RIGHT, true);
+                } else {
+                    entity.setMoving(Direction.RIGHT, false);
+                }
+
+                if (controller.getAxis(Xbox360Pad.AXIS_LEFT_Y) > 0.5) { //DOWN
+                    entity.setMoving(Direction.DOWN, true);
+                } else {
+                    entity.setMoving(Direction.DOWN, false);
+                }
+
+                if (controller.getAxis(Xbox360Pad.AXIS_LEFT_Y) < -0.5) { //UP
+                    entity.setMoving(Direction.UP, true);
+                } else {
+                    entity.setMoving(Direction.UP, false);
+                }
+
+               ///////////////////////////////////////////////////////////////
                //camera movement
                if (controller.getAxis(Xbox360Pad.AXIS_RIGHT_X) < -0.5) { //LEFT
                     entity.setCameraMoving(Direction.LEFT, true);
-                } if (controller.getAxis(Xbox360Pad.AXIS_RIGHT_X) > 0.5) { //RIGHT
+               } else {
+                   entity.setCameraMoving(Direction.LEFT, false);
+               }
+
+               if (controller.getAxis(Xbox360Pad.AXIS_RIGHT_X) > 0.5) { //RIGHT
                     entity.setCameraMoving(Direction.RIGHT, true);
-                } else if (controller.getAxis(Xbox360Pad.AXIS_RIGHT_Y) > 0.5) { //DOWN
+                } else {
+                   entity.setCameraMoving(Direction.RIGHT, false);
+               }
+
+                if (controller.getAxis(Xbox360Pad.AXIS_RIGHT_Y) > 0.5) { //DOWN
                     entity.setCameraMoving(Direction.DOWN, true);
-                } else if (controller.getAxis(Xbox360Pad.AXIS_RIGHT_Y) < -0.5) { //UP
-                    entity.setCameraMoving(Direction.UP, true);
-                } else if(Math.abs(controller.getAxis(Xbox360Pad.AXIS_RIGHT_X)) < 0.3 &&
-                        Math.abs(controller.getAxis(Xbox360Pad.AXIS_RIGHT_Y)) < 0.3) {
-                    entity.setCameraMoving(Direction.LEFT, false);
-                    entity.setCameraMoving(Direction.RIGHT, false);
-                    entity.setCameraMoving(Direction.UP, false);
+                } else {
                     entity.setCameraMoving(Direction.DOWN, false);
+                }
+
+                if (controller.getAxis(Xbox360Pad.AXIS_RIGHT_Y) < -0.5) { //UP
+                    entity.setCameraMoving(Direction.UP, true);
+                } else {
+                    entity.setCameraMoving(Direction.UP, false);
+                }
+
+                if (controller.getAxis(Xbox360Pad.AXIS_RIGHT_TRIGGER) < -0.5) {
+                    entity.setCameraMoving(Direction.IN, true);
+                } else {
+                    entity.setCameraMoving(Direction.IN, false);
+                }
+
+                if (controller.getAxis(Xbox360Pad.AXIS_RIGHT_TRIGGER) > 0.5) {
+                    entity.setCameraMoving(Direction.OUT, true);
+                } else {
+                    entity.setCameraMoving(Direction.OUT, false);
                 }
 
                return true;
@@ -63,10 +93,15 @@ public class PlayerController {
             public boolean buttonDown(Controller controller, int buttonCode) {
                 if (buttonCode == Xbox360Pad.BUTTON_A) {
                     entity.changeMoveRadius(1);
-                } else if (buttonCode == Xbox360Pad.BUTTON_X) {
+                }
+                if (buttonCode == Xbox360Pad.BUTTON_X) {
                     entity.changeMoveRadius(-1);
-                } else if (buttonCode == Xbox360Pad.BUTTON_B) {
+                }
+                if (buttonCode == Xbox360Pad.BUTTON_B) {
                     entity.changeMoveRadius(-entity.getMoveRadius());
+                }
+                if (buttonCode == Xbox360Pad.BUTTON_Y) {
+                    entity.toggleVisibility();
                 }
                 return true;
             }

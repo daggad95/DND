@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Select;
+import com.sun.org.apache.xpath.internal.operations.Or;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -34,7 +35,8 @@ public class Entity {
     protected float timer; //used to control movement
     protected float lastMove; //time at which the entity last moved
     public static final float moveInterval = 0.25f; //time in seconds required before next move
-    public static final float CMR = 10; //camera movement rate in m/s
+    public static final float CMR = 15; //camera movement rate in m/s
+    public static float CZS = 1; //speed at which the camera zooms
 
     protected int moveRadius;
     protected Vector2 moveRadiusCenter;
@@ -59,6 +61,8 @@ public class Entity {
     protected boolean dead;
     protected String status;
     protected boolean player;
+    protected boolean visible;
+    protected int viewRange; //number of tiles the player can see
 
 
     public Entity(Vector2 position, Vector2 size, String textureName, Map<String, Texture> textures, ArrayList<Vector2> wallPositions) {
@@ -78,11 +82,13 @@ public class Entity {
         moving[Direction.UP] = false;
         moving[Direction.DOWN] = false;
 
-        cameraMoving = new boolean[4];
+        cameraMoving = new boolean[6];
         cameraMoving[Direction.RIGHT] = false;
         cameraMoving[Direction.LEFT] = false;
         cameraMoving[Direction.UP] = false;
         cameraMoving[Direction.DOWN] = false;
+        cameraMoving[Direction.IN] = false;
+        cameraMoving[Direction.OUT] = false;
 
         lastMove = 0;
 
@@ -93,6 +99,8 @@ public class Entity {
         dead = false;
         status = "";
         player = false;
+        viewRange = 0;
+        visible = true;
         viewedTiles = new HashMap<Vector2, Boolean>();
 
         setFOV();
@@ -131,7 +139,7 @@ public class Entity {
 
         timer += Gdx.graphics.getDeltaTime();
         move();
-        moveCamera(camera);
+        moveCamera(camera, hudCamera);
     }
 
     private void setMoveRadius(int moveRange, int direction, Vector2 pos, boolean wasDiagonal, ArrayList path) {
@@ -225,21 +233,22 @@ public class Entity {
         cameraMoving[direction] = value;
     }
 
+
     private void move() {
         if (timer > lastMove + moveInterval) {
             if (moving[Direction.LEFT]) {
                 position.x -= 1;
                 lastMove = timer;
                 setFOV();
-            } else if (moving[Direction.RIGHT]) {
+            } if (moving[Direction.RIGHT]) {
                 position.x += 1;
                 lastMove = timer;
                 setFOV();
-            } else if (moving[Direction.UP]) {
+            } if (moving[Direction.UP]) {
                 position.y += 1;
                 lastMove = timer;
                 setFOV();
-            } else if (moving[Direction.DOWN]) {
+            } if (moving[Direction.DOWN]) {
                 position.y -= 1;
                 lastMove = timer;
                 setFOV();
@@ -247,7 +256,7 @@ public class Entity {
         }
     }
 
-    private void moveCamera(OrthographicCamera camera) {
+    private void moveCamera(OrthographicCamera camera, OrthographicCamera hudCamera) {
         if (cameraMoving[Direction.RIGHT]) {
             camera.translate(CMR*Gdx.graphics.getDeltaTime() * camera.zoom, 0, 0);
         }
@@ -259,6 +268,14 @@ public class Entity {
         }
         if (cameraMoving[Direction.DOWN]) {
             camera.translate(0, -CMR*Gdx.graphics.getDeltaTime() * camera.zoom, 0);
+        }
+        if (cameraMoving[Direction.IN]) {
+            camera.zoom += CZS * Gdx.graphics.getDeltaTime();
+            hudCamera.zoom += CZS * Gdx.graphics.getDeltaTime();
+        }
+        if (cameraMoving[Direction.OUT]) {
+            camera.zoom -= CZS * Gdx.graphics.getDeltaTime();
+            hudCamera.zoom -= CZS * Gdx.graphics.getDeltaTime();
         }
         camera.update();
     }
@@ -319,6 +336,18 @@ public class Entity {
         this.status = status;
     }
 
+    public void setPlayer(boolean status) {
+        player = status;
+    }
+
+    public void setViewRange(int vr) {
+        this.viewRange = vr;
+    }
+
+    public void toggleVisibility() {
+        visible = !visible;
+    }
+
     public Vector2 getSize() {
         return size;
     }
@@ -331,15 +360,13 @@ public class Entity {
         return textureName;
     }
 
-    public int getMoveRadius() { return moveRadius; }
 
-    public void setPlayer(boolean status) {
-        player = status;
-    }
+    public int getMoveRadius() { return moveRadius; }
 
     public boolean isPlayer() {
         return player;
     }
+
 
     private boolean viewBlocked(Vector2 pos) {
         for (Vector2 wallPos : wallPositions) {
@@ -367,7 +394,7 @@ public class Entity {
 
         Vector2 checkPoint = new Vector2(position);
         for (int j = 0; j < steps; j++) {
-            if (!viewedTiles.containsKey(checkPoint)) {
+            if (!viewedTiles.containsKey(new Vector2((int)checkPoint.x, (int)checkPoint.y))) {
                 viewedTiles.put(new Vector2((int)checkPoint.x, (int)checkPoint.y), true);
             }
 
@@ -380,9 +407,7 @@ public class Entity {
 
 
     public void setFOV() {
-        int viewRange = 40;
         viewedTiles.clear();
-
 
         /*for (int i = -viewRange; i <= viewRange; i++) {
             Vector2 endPointTop = new Vector2(position).add(i, viewRange);
@@ -402,11 +427,13 @@ public class Entity {
                 checkFOV(endPoint);
             }
         }
-
-
     }
 
     public HashMap<Vector2, Boolean> getFOV() {
-        return viewedTiles;
+        if (visible) {
+            return viewedTiles;
+        } else {
+            return null;
+        }
     }
 }

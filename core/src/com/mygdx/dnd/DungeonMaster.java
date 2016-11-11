@@ -41,7 +41,7 @@ public class DungeonMaster {
 
     private int actionState;
 
-    public static final float CMR = 10; //camera movement rate in m/s
+    public static final float CMR = 15; //camera movement rate in m/s
     public static float CZS = 3; //speed at which the camera zooms
 
     public DungeonMaster(List<Entity> entities, OrthographicCamera camera, OrthographicCamera hudCamera, Map<String, Texture> textures, DND game, TiledMap map) {
@@ -194,8 +194,11 @@ public class DungeonMaster {
                         String fileName = tk.nextToken();
                         load(fileName);
                     }
-                } else if (mainCommand.equals("fow")) {
-                    fow();
+                } else if (mainCommand.equals("viewrange")) {
+                    if (tk.hasMoreTokens()) {
+                        int range = Integer.parseInt(tk.nextToken());
+                        setViewRange(range);
+                    }
                 }
 
 
@@ -203,6 +206,12 @@ public class DungeonMaster {
                 System.out.println(e);
             }
         }
+    }
+
+    //sets view range of CE and updates CE's field of view
+    private void setViewRange(int range) {
+        currentEntity.setViewRange(range);
+        currentEntity.setFOV();
     }
 
     //Turns the current entity into a
@@ -268,7 +277,7 @@ public class DungeonMaster {
         }
     }
 
-    private void fow() {
+    public void toggleFOW() {
         fow = !fow;
     }
 
@@ -344,8 +353,10 @@ public class DungeonMaster {
 
         for (Entity e : entities) {
             //if (e.isPlayer()) {
-                for (Vector2 tilePos : e.getFOV().keySet()) {
-                    viewedTiles.put(tilePos, e.getFOV().get(tilePos));
+                if (e.getFOV() != null) {
+                    for (Vector2 tilePos : e.getFOV().keySet()) {
+                        viewedTiles.put(tilePos, e.getFOV().get(tilePos));
+                    }
                 }
             //}
         }

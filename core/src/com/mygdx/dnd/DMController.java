@@ -74,6 +74,9 @@ public class DMController extends InputAdapter {
         if (keycode == Input.Keys.A) { dungeonMaster.setCameraMoving(Direction.LEFT, false); }
         if (keycode == Input.Keys.D) { dungeonMaster.setCameraMoving(Direction.RIGHT, false); }
 
+        //toggle fog of war
+        if (keycode == Input.Keys.F) { dungeonMaster.toggleFOW(); }
+
         //stops entity movement if key is released
         if (dungeonMaster.getCurrentEntity() != null) {
             if (keycode == Input.Keys.UP) {
