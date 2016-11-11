@@ -42,7 +42,7 @@ public class Entity {
     protected Vector2 moveRadiusCenter;
 
     //pulse animation stuff
-    protected static final float DEFAULT_ALPHA = 0.3f;
+    protected static final float DEFAULT_ALPHA = 0.5f;
     protected static final float MIN_PULSE = 0.3f;
     protected static final float MAX_PULSE = 0.7f;
     protected static final float PULSE_RATE = 0.8f;
@@ -198,7 +198,7 @@ public class Entity {
         setMoveRadius(moveRadius, Direction.DOWN_RIGHT, moveRadiusCenter, false, path);
         setMoveRadius(moveRadius, Direction.UP_LEFT, moveRadiusCenter, false, path);
         setMoveRadius(moveRadius, Direction.DOWN_LEFT, moveRadiusCenter, false, path);
-        
+
         for (Vector2 pos : path) {
             if (!pos.epsilonEquals(moveRadiusCenter, 0.9f)) {
                 batch.draw(textures.get(BG_TEXTURE), pos.x, pos.y, 1, 1);
@@ -329,7 +329,11 @@ public class Entity {
     //sets entity to a random color
     public void randColor() {
         Random rand = new Random();
-        bgColor = new Color(rand.nextFloat(), rand.nextFloat(), rand.nextFloat(), (float)1);
+        float r = rand.nextFloat();
+        float g = rand.nextFloat();
+        float b = rand.nextFloat();
+
+        bgColor = new Color(r + Color.BLACK.r / 2, g + Color.BLACK.g / 2, b + Color.BLACK.b / 2, (float)1);
     }
 
     public void setStatus(String status) {

@@ -26,13 +26,13 @@ public class DungeonMaster {
     private ArrayList<Vector2> wallPositions;
     private TiledMap map;
     private Entity currentEntity;
+    private Vector2 currentTile;
     private List<Entity> entities;
     List<PlayerController> controllers;
     Map<String, Texture> textures;
     private OrthographicCamera camera;
     private OrthographicCamera hudCamera;
     private boolean cameraMoving[]; //determines whether camera is moving in 4 directions
-    private Vector2 lastClicked; // last clicked position by dm
     private DND game;
     private boolean fow; //determines if fow is being drawn
     FPSLogger logger;
@@ -111,24 +111,33 @@ public class DungeonMaster {
         }
         currentEntity = e;
         currentEntity.setSelected(true);
+        currentTile = null;
     }
-    public void setLastClicked(Vector2 p) { lastClicked = p; }
+    public void setCurrentTile(Vector2 pos) {
+        currentTile = pos;
+        if (currentEntity != null) {
+            currentEntity.setSelected(false);
+            currentEntity = null;
+        }
+
+    }
+
     public Entity getCurrentEntity() {
         return currentEntity;
     }
 
 
     public void spawnEntity(String command) {
-        if (command != "") {
+        if (command != "" && currentTile != null) {
             try {
                 StringTokenizer tk = new StringTokenizer(command);
+
                 //defaults to 1x1
                 float width = 1;
                 float height = 1;
                 int numEntities = 1;
 
                 String name = tk.nextToken();
-
 
                 if (tk.hasMoreTokens()) {
                     numEntities = Integer.parseInt(tk.nextToken());
@@ -141,18 +150,17 @@ public class DungeonMaster {
                     height = Float.parseFloat(tk.nextToken());
                 }
                 if (textures.get(name) == null) {
-                    throw new Exception();
+                    throw new Exception("ARGG");
                 }
 
-                for(int x = 0; x < numEntities; x++){
-                    lastClicked.add(1, 0);
-                    Entity e = new Entity(new Vector2(lastClicked), new Vector2(width, height), name, textures, wallPositions);
+                for(int x = 0; x < numEntities; x++) {
+                    Entity e = new Entity(new Vector2(currentTile).add(x, 0), new Vector2(width, height), name, textures, wallPositions);
                     entities.add(e);
                 }
                 setCurrentEntity(entities.get(entities.size() - 1));
             } catch (Exception e) {
                 System.out.println(e);
-                System.out.println("invalid command");
+                System.out.println("invalid spawn command");
             }
         }
     }
@@ -199,6 +207,8 @@ public class DungeonMaster {
                         int range = Integer.parseInt(tk.nextToken());
                         setViewRange(range);
                     }
+                } else if (mainCommand.equals("spawn")) {
+                    spawnEntity(command.replaceAll("spawn ", ""));
                 }
 
 
@@ -293,6 +303,10 @@ public class DungeonMaster {
                 drawFOW(batch);
             }
 
+            if (currentTile != null) {
+                drawCurrentTile(batch);
+            }
+
             //conversion ratios for hud
             float wc = hudCamera.viewportWidth / camera.viewportWidth;
             float hc = hudCamera.viewportHeight / camera.viewportHeight;
@@ -311,10 +325,7 @@ public class DungeonMaster {
                 camera.translate(0, -CMR*Gdx.graphics.getDeltaTime() * camera.zoom, 0);
             }
             camera.update();
-        } else if (actionState == States.SPAWN_ENTITY) {
-            spawnEntity(game.getPromptScreen().getResponse());
-            setActionState(States.NORMAL);
-        } else if (actionState == States.GET_COMMAND) {
+        }  else if (actionState == States.GET_COMMAND) {
             handleCommand(game.getPromptScreen().getResponse());
             setActionState(States.NORMAL);
         }
@@ -381,5 +392,10 @@ public class DungeonMaster {
                 }
             }
         }
+    }
+
+    private void drawCurrentTile(SpriteBatch batch) {
+        batch.setColor(Color.WHITE);
+        batch.draw(textures.get(FOG_TEXTURE), currentTile.x, currentTile.y, 1, 1);
     }
 }

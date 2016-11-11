@@ -32,9 +32,7 @@ public class DMController extends InputAdapter {
         if (dungeonMaster.entityAt(pos)) {
             dungeonMaster.setCurrentEntity(dungeonMaster.getEntity(pos));
         } else {
-            dungeonMaster.setLastClicked(pos);
-            dungeonMaster.getGame().getPromptScreen().prompt("Enter entity name and size");
-            dungeonMaster.setActionState(States.SPAWN_ENTITY);
+            dungeonMaster.setCurrentTile(pos);
         }
         return true;
     }
