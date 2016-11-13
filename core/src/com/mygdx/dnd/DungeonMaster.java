@@ -3,7 +3,9 @@ package com.mygdx.dnd;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
+import com.badlogic.gdx.controllers.mappings.Xbox;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.FPSLogger;
@@ -173,10 +175,7 @@ public class DungeonMaster {
                 String mainCommand = tk.nextToken();
 
                 if (mainCommand.equals("setplayer")) {
-                    if (tk.hasMoreTokens()) {
-                        int playerNum = Integer.parseInt(tk.nextToken());
-                        setPlayer(playerNum);
-                    }
+                    setPlayer();
                 } else if (mainCommand.equals("unsetplayer")) {
                     unsetPlayer();
                 } else if (mainCommand.equals("kill")) {
@@ -226,12 +225,15 @@ public class DungeonMaster {
 
     //Turns the current entity into a
     //controllable player;
-    private void setPlayer(int playerNum) {
-        if (Controllers.getControllers().size >= playerNum) {
-            controllers.add(new PlayerController(Controllers.getControllers().get(playerNum - 1), currentEntity));
-            currentEntity.setBgColor(Color.WHITE);
-            currentEntity.setPlayer(true);
+    private void setPlayer() {
+        if (currentEntity != null) {
+            setActionState(States.POLL_CONTROLLERS);
+            System.out.println("here");
         }
+
+            /*controllers.add(new PlayerController(Controllers.getControllers().get(playerNum - 1), currentEntity));
+            currentEntity.setBgColor(Color.WHITE);
+            currentEntity.setPlayer(true);*/
     }
 
     private void unsetPlayer() {
@@ -327,7 +329,19 @@ public class DungeonMaster {
             camera.update();
         }  else if (actionState == States.GET_COMMAND) {
             handleCommand(game.getPromptScreen().getResponse());
-            setActionState(States.NORMAL);
+            if (actionState == States.GET_COMMAND) {
+                setActionState(States.NORMAL);
+            }
+
+        } else if (actionState == States.POLL_CONTROLLERS) {
+            currentEntity.update(batch, camera, hudCamera);
+
+            for (Controller c : Controllers.getControllers()) {
+                if (c.getButton(Xbox360Pad.BUTTON_A)) {
+                    controllers.add(new PlayerController(c, currentEntity));
+                    setActionState(States.NORMAL);
+                }
+            }
         }
     }
 

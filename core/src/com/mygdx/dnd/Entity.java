@@ -129,6 +129,10 @@ public class Entity {
             batch.draw(textures.get(BG_TEXTURE), position.x, position.y, size.x, size.y);
         }
 
+        if (moveRadius > 0) {
+            drawMoveRadius(batch);
+        }
+
         //drawing sprite
         batch.setColor(bgColor.r, bgColor.g, bgColor.b, 1f);
         batch.draw(textures.get(textureName), position.x, position.y, size.x, size.y);
@@ -144,16 +148,14 @@ public class Entity {
             batch.draw(textures.get(RING_TEXTURE), position.x, position.y, size.x, size.y);
         }
 
-        if (moveRadius > 0) {
-            drawMoveRadius(batch);
-        }
 
         if (!status.equals("")) {
             drawStatus(batch, camera, hudCamera);
         }
 
-        timer += Gdx.graphics.getDeltaTime();
-        move();
+        if (!inParty) {
+            move(Gdx.graphics.getDeltaTime());
+        }
         moveCamera(camera, hudCamera);
     }
 
@@ -224,6 +226,7 @@ public class Entity {
 
     private void drawStatus(SpriteBatch batch, OrthographicCamera camera, OrthographicCamera hudCamera) {
         BitmapFont font = new BitmapFont();
+        font.setColor(Color.BLACK);
 
         //conversion ratios for hud
         float wc = hudCamera.viewportWidth / camera.viewportWidth;
@@ -232,6 +235,7 @@ public class Entity {
         hudCamera.position.x = camera.position.x * wc;
         hudCamera.position.y = camera.position.y * hc;
         hudCamera.update();
+
 
         batch.setProjectionMatrix(hudCamera.combined);
         font.draw(batch, status, position.x * wc, position.y * hc);
@@ -273,7 +277,9 @@ public class Entity {
     }
 
 
-    private void move() {
+    private void move(float deltaTime) {
+        timer += deltaTime;
+
         if (timer > lastMove + moveInterval) {
             if (moving[Direction.LEFT]) {
                 movePosition.x -= 1;
@@ -290,40 +296,40 @@ public class Entity {
             }
         }
 
-        if (!position.epsilonEquals(movePosition, 0.1f)) {
+        if (!position.epsilonEquals(movePosition, 0.01f)) {
 
             float deltaX = 0;
             float deltaY = 0;
             
             if (movePosition.x > position.x) {
-                if (Math.abs(movePosition.x - position.x) > 0.2) {
-                    deltaX = Gdx.graphics.getDeltaTime() / moveInterval;
+                if (Math.abs(movePosition.x - position.x) > 0.1) {
+                    deltaX = deltaTime / moveInterval;
                 } else {
                     position.x = movePosition.x;
                 }
             } else if(movePosition.x < position.x) {
-                if (Math.abs(movePosition.x - position.x) > 0.2) {
-                    deltaX = -Gdx.graphics.getDeltaTime() / moveInterval;
+                if (Math.abs(movePosition.x - position.x) > 0.1) {
+                    deltaX = -deltaTime / moveInterval;
                 } else {
                     position.x = movePosition.x;
                 }
             }
 
             if (movePosition.y > position.y) {
-                if (Math.abs(movePosition.y - position.y) > 0.2) {
-                    deltaY = Gdx.graphics.getDeltaTime() / moveInterval;
+                if (Math.abs(movePosition.y - position.y) > 0.1) {
+                    deltaY = deltaTime / moveInterval;
                 } else {
                     position.y = movePosition.y;
                 }
             } else if(movePosition.y < position.y) {
-                if (Math.abs(movePosition.y - position.y) > 0.2) {
-                    deltaY = -Gdx.graphics.getDeltaTime() / moveInterval;
+                if (Math.abs(movePosition.y - position.y) > 0.1) {
+                    deltaY = -deltaTime / moveInterval;
                 } else {
                     position.y = movePosition.y;
                 }
             }
 
-            if (position.epsilonEquals(movePosition, 0.1f)) {
+            if (position.epsilonEquals(movePosition, 0.01f)) {
                 setFOV();
             }
 
@@ -332,7 +338,7 @@ public class Entity {
 
         if (party.size() > 0) {
             for (Entity e : party) {
-                e.move();
+                e.move(deltaTime);
             }
         }
     }
@@ -365,7 +371,6 @@ public class Entity {
         if (!(deltaRadius < 0 && moveRadius == 0)) {
             if (moveRadius == 0) {
                 moveRadiusCenter = new Vector2(position);
-
             }
             moveRadius += deltaRadius;
             status = Integer.toString(moveRadius * 5) + " ft";
