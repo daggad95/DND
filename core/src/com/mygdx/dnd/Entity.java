@@ -38,6 +38,7 @@ public class Entity {
     protected float timer; //used to control movement
     protected float lastMove; //time at which the entity last moved
     public static final float moveInterval = 0.25f; //time in seconds required before next move
+    public static final float MOVESPEED = 1f; //movement speed in m/s
     public static final float CMR = 15; //camera movement rate in m/s
     public static float CZS = 1; //speed at which the camera zooms
 
@@ -77,6 +78,7 @@ public class Entity {
         this.textureName = textureName;
         this.wallPositions = wallPositions;
 
+        movePosition = new Vector2(position);
         moveRadius = 0;
         font = new BitmapFont();
         randColor();
@@ -274,22 +276,58 @@ public class Entity {
     private void move() {
         if (timer > lastMove + moveInterval) {
             if (moving[Direction.LEFT]) {
-                position.x -= 1;
+                movePosition.x -= 1;
                 lastMove = timer;
-                setFOV();
             } if (moving[Direction.RIGHT]) {
-                position.x += 1;
+                movePosition.x += 1;
                 lastMove = timer;
-                setFOV();
             } if (moving[Direction.UP]) {
-                position.y += 1;
+                movePosition.y += 1;
                 lastMove = timer;
-                setFOV();
             } if (moving[Direction.DOWN]) {
-                position.y -= 1;
+                movePosition.y -= 1;
                 lastMove = timer;
+            }
+        }
+
+        if (!position.epsilonEquals(movePosition, 0.1f)) {
+
+            float deltaX = 0;
+            float deltaY = 0;
+            
+            if (movePosition.x > position.x) {
+                if (Math.abs(movePosition.x - position.x) > 0.2) {
+                    deltaX = Gdx.graphics.getDeltaTime() / moveInterval;
+                } else {
+                    position.x = movePosition.x;
+                }
+            } else if(movePosition.x < position.x) {
+                if (Math.abs(movePosition.x - position.x) > 0.2) {
+                    deltaX = -Gdx.graphics.getDeltaTime() / moveInterval;
+                } else {
+                    position.x = movePosition.x;
+                }
+            }
+
+            if (movePosition.y > position.y) {
+                if (Math.abs(movePosition.y - position.y) > 0.2) {
+                    deltaY = Gdx.graphics.getDeltaTime() / moveInterval;
+                } else {
+                    position.y = movePosition.y;
+                }
+            } else if(movePosition.y < position.y) {
+                if (Math.abs(movePosition.y - position.y) > 0.2) {
+                    deltaY = -Gdx.graphics.getDeltaTime() / moveInterval;
+                } else {
+                    position.y = movePosition.y;
+                }
+            }
+
+            if (position.epsilonEquals(movePosition, 0.1f)) {
                 setFOV();
             }
+
+            position.add(deltaX, deltaY);
         }
 
         if (party.size() > 0) {
@@ -410,10 +448,6 @@ public class Entity {
 
     public int getMoveRadius() { return moveRadius; }
 
-    public boolean isInParty() {
-        return inParty;
-    }
-
 
     private boolean viewBlocked(Vector2 pos) {
         for (Vector2 wallPos : wallPositions) {
@@ -445,7 +479,7 @@ public class Entity {
                 viewedTiles.put(new Vector2((int)checkPoint.x, (int)checkPoint.y), true);
             }
 
-            if (viewBlocked(checkPoint)) {
+            if (viewBlocked(new Vector2((int)checkPoint.x, (int)checkPoint.y))) {
                 break;
             }
             checkPoint.add(deltaX, deltaY);
@@ -456,7 +490,7 @@ public class Entity {
     public void setFOV() {
         viewedTiles.clear();
 
-        /*for (int i = -viewRange; i <= viewRange; i++) {
+        for (int i = -viewRange; i <= viewRange; i++) {
             Vector2 endPointTop = new Vector2(position).add(i, viewRange);
             Vector2 endPointBottom = new Vector2(position).add(i, -viewRange);
             Vector2 endPointLeft = new Vector2(position).add(-viewRange, i);
@@ -466,14 +500,14 @@ public class Entity {
             checkFOV(endPointBottom);
             checkFOV(endPointLeft);
             checkFOV(endPointRight);
-        }*/
+        }
 
-        for (int i = -viewRange; i <= viewRange; i++) {
+        /*for (int i = -viewRange; i <= viewRange; i++) {
             for (int j = -viewRange; j <= viewRange; j++) {
                 Vector2 endPoint = new Vector2(position).add(i, j);
                 checkFOV(endPoint);
             }
-        }
+        }*/
     }
 
     public HashMap<Vector2, Boolean> getFOV() {
