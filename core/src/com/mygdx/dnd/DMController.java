@@ -13,10 +13,12 @@ import com.badlogic.gdx.math.Vector3;
 public class DMController extends InputAdapter {
     private DungeonMaster dungeonMaster;
     private OrthographicCamera camera;
+    private boolean control; //whether or not control is being held
 
     public DMController(DungeonMaster dm, OrthographicCamera c) {
         this.dungeonMaster = dm;
         this.camera = c;
+        control = false;
     }
 
     public boolean touchDown (int x, int y, int pointer, int button) {
@@ -28,9 +30,15 @@ public class DMController extends InputAdapter {
         y = (int) Math.floor(mousePosition.y);
 
         //sets entity controlled by dm to clicked on entity
+        //or links entity to current entity if control is held
         Vector2 pos = new Vector2((float)x, (float)y);
+
         if (dungeonMaster.entityAt(pos)) {
-            dungeonMaster.setCurrentEntity(dungeonMaster.getEntity(pos));
+            if (control) {
+                dungeonMaster.getCurrentEntity().togglePartyMember(dungeonMaster.getEntity(pos));
+            } else {
+                dungeonMaster.setCurrentEntity(dungeonMaster.getEntity(pos));
+            }
         } else {
             dungeonMaster.setCurrentTile(pos);
         }
@@ -38,6 +46,11 @@ public class DMController extends InputAdapter {
     }
 
     public boolean keyDown(int keycode) {
+        //control key usage
+        if (keycode == Input.Keys.CONTROL_LEFT) {
+            control = true;
+        }
+
         //camera movement
         if (keycode == Input.Keys.W) { dungeonMaster.setCameraMoving(Direction.UP, true); }
         if (keycode == Input.Keys.S) { dungeonMaster.setCameraMoving(Direction.DOWN, true); }
@@ -66,6 +79,11 @@ public class DMController extends InputAdapter {
     }
 
     public boolean keyUp(int keycode) {
+        //control key usage
+        if (keycode == Input.Keys.CONTROL_LEFT) {
+            control = false;
+        }
+
         //camera movement
         if (keycode == Input.Keys.W) { dungeonMaster.setCameraMoving(Direction.UP, false); }
         if (keycode == Input.Keys.S) { dungeonMaster.setCameraMoving(Direction.DOWN, false); }

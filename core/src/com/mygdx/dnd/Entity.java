@@ -24,11 +24,14 @@ import java.util.Random;
  */
 public class Entity {
     protected Vector2 position;
+    protected Vector2 movePosition;
     protected Vector2 size;
     protected BitmapFont font;
     protected Color bgColor;
+    protected Color partyColor; //color of party leader;
     protected ArrayList<Vector2> wallPositions;
     protected HashMap<Vector2, Boolean> viewedTiles;
+    protected ArrayList<Entity> party; //connected entities that move together
 
     protected boolean[] moving; //used to determine which direction players is moving
     protected boolean[] cameraMoving;
@@ -56,6 +59,7 @@ public class Entity {
     protected String textureName;
     protected static final String BG_TEXTURE = "whitebox"; //name of background texture
     protected static final String DEAD_TEXTURE = "dead"; // name of dead overlay texture
+    protected static final String RING_TEXTURE = "whitering";
 
     //stats
     protected boolean dead;
@@ -63,6 +67,7 @@ public class Entity {
     protected boolean player;
     protected boolean visible;
     protected int viewRange; //number of tiles the player can see
+    protected boolean inParty;
 
 
     public Entity(Vector2 position, Vector2 size, String textureName, Map<String, Texture> textures, ArrayList<Vector2> wallPositions) {
@@ -101,7 +106,9 @@ public class Entity {
         player = false;
         viewRange = 0;
         visible = true;
+        inParty = false;
         viewedTiles = new HashMap<Vector2, Boolean>();
+        party = new ArrayList<Entity>();
 
         setFOV();
     }
@@ -127,6 +134,12 @@ public class Entity {
         if (dead) {
             batch.setColor(Color.WHITE);
             batch.draw(textures.get(DEAD_TEXTURE), position.x, position.y, size.x, size.y);
+        }
+
+        //drawing party color if in party
+        if (inParty) {
+            batch.setColor(partyColor);
+            batch.draw(textures.get(RING_TEXTURE), position.x, position.y, size.x, size.y);
         }
 
         if (moveRadius > 0) {
@@ -227,10 +240,34 @@ public class Entity {
 
     public void setMoving(int direction, boolean value) {
         moving[direction] = value;
+
+        if (party.size() > 0) {
+            for (Entity e : party) {
+                e.setMoving(direction, value);
+            }
+        }
     }
 
     public void setCameraMoving(int direction, boolean value) {
         cameraMoving[direction] = value;
+    }
+
+    public void togglePartyMember(Entity e) {
+        if (e != this) {
+            if (party.contains(e)) {
+                party.remove((e));
+                e.setParty(false, bgColor);
+            } else {
+                party.add(e);
+                e.setParty(true, bgColor);
+            }
+        }
+
+    }
+
+    public void setParty(boolean val, Color leaderColor) {
+        inParty = val;
+        partyColor = leaderColor;
     }
 
 
@@ -252,6 +289,12 @@ public class Entity {
                 position.y -= 1;
                 lastMove = timer;
                 setFOV();
+            }
+        }
+
+        if (party.size() > 0) {
+            for (Entity e : party) {
+                e.move();
             }
         }
     }
@@ -367,8 +410,8 @@ public class Entity {
 
     public int getMoveRadius() { return moveRadius; }
 
-    public boolean isPlayer() {
-        return player;
+    public boolean isInParty() {
+        return inParty;
     }
 
 
