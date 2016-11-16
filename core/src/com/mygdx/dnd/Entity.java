@@ -265,8 +265,10 @@ public class Entity {
                 party.remove((e));
                 e.setParty(false, bgColor);
             } else {
-                party.add(e);
-                e.setParty(true, bgColor);
+                if (!e.isInParty()) {
+                    party.add(e);
+                    e.setParty(true, bgColor);
+                }
             }
         }
 
@@ -464,6 +466,10 @@ public class Entity {
 
     public String getStatus() {
         return status;
+    }
+
+    public boolean isInParty() {
+        return inParty;
     }
 
     public int getMoveRadius() { return moveRadius; }
