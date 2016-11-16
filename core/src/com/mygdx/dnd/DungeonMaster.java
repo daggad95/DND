@@ -31,6 +31,7 @@ public class DungeonMaster {
     private Vector2 currentTile;
     private List<Entity> entities;
     List<PlayerController> controllers;
+    ArrayList<String> names; //names of entities loaded from file
     Map<String, Texture> textures;
     private OrthographicCamera camera;
     private OrthographicCamera hudCamera;
@@ -75,6 +76,8 @@ public class DungeonMaster {
                 }
             }
         }
+
+        loadNames("saves/names");
 
     }
 
@@ -156,7 +159,7 @@ public class DungeonMaster {
                 }
 
                 for(int x = 0; x < numEntities; x++) {
-                    Entity e = new Entity(new Vector2(currentTile).add(x, 0), new Vector2(width, height), name, textures, wallPositions);
+                    Entity e = new Entity(new Vector2(currentTile).add(x, 0), new Vector2(width, height), name, textures, wallPositions, names);
                     entities.add(e);
                 }
                 setCurrentEntity(entities.get(entities.size() - 1));
@@ -265,7 +268,8 @@ public class DungeonMaster {
 
         for (Entity e : entities) {
             String line = e.getTextureName() + ";" + e.getPosition().x + ";"
-                    + e.getPosition().y + ";" + e.getSize().x + ";" + e.getSize().y + "\n";
+                    + e.getPosition().y + ";" + e.getSize().x + ";"
+                    + e.getSize().y + ";" + e.isDead() + ";" + e.getName() + ";" + e.getStatus() + "\n";
             fh.writeString(line, true);
         }
     }
@@ -284,8 +288,34 @@ public class DungeonMaster {
             float y = Float.parseFloat(entityTokenizer.nextToken());
             float w = Float.parseFloat(entityTokenizer.nextToken());
             float h = Float.parseFloat(entityTokenizer.nextToken());
+            boolean deathState = Boolean.parseBoolean(entityTokenizer.nextToken());
+            String name = entityTokenizer.nextToken();
 
-            entities.add(new Entity(new Vector2(x, y), new Vector2(w, h), texture, textures, wallPositions));
+
+
+
+            Entity e = new Entity(new Vector2(x, y), new Vector2(w, h), texture, textures, wallPositions, names);
+            e.setDead(deathState);
+            e.setName(name);
+
+            if (entityTokenizer.hasMoreTokens()) {
+                String status = entityTokenizer.nextToken();
+                e.setStatus(status);
+            }
+
+            entities.add(e);
+        }
+    }
+
+    //loads entity names from file
+    private void loadNames(String filename) {
+        names = new ArrayList<String>();
+        FileHandle fh = Gdx.files.local(filename);
+
+        StringTokenizer lineTokenizer = new StringTokenizer(fh.readString(), "\n");
+
+        while(lineTokenizer.hasMoreTokens()) {
+            names.add(lineTokenizer.nextToken());
         }
     }
 

@@ -30,6 +30,7 @@ public class Entity {
     protected Color bgColor;
     protected Color partyColor; //color of party leader;
     protected ArrayList<Vector2> wallPositions;
+    protected ArrayList<String> names; //list of names to be randomly picked from
     protected HashMap<Vector2, Boolean> viewedTiles;
     protected ArrayList<Entity> party; //connected entities that move together
 
@@ -67,16 +68,18 @@ public class Entity {
     protected String status;
     protected boolean player;
     protected boolean visible;
+    protected String name;
     protected int viewRange; //number of tiles the player can see
     protected boolean inParty;
 
 
-    public Entity(Vector2 position, Vector2 size, String textureName, Map<String, Texture> textures, ArrayList<Vector2> wallPositions) {
+    public Entity(Vector2 position, Vector2 size, String textureName, Map<String, Texture> textures, ArrayList<Vector2> wallPositions, ArrayList<String> names) {
         this.position = position;
         this.size = size;
         this.textures = textures;
         this.textureName = textureName;
         this.wallPositions = wallPositions;
+        this.names = names;
 
         movePosition = new Vector2(position);
         moveRadius = 0;
@@ -113,6 +116,8 @@ public class Entity {
         party = new ArrayList<Entity>();
 
         setFOV();
+        randomName();
+
     }
 
     public void update(SpriteBatch batch, OrthographicCamera camera, OrthographicCamera hudCamera) {
@@ -149,9 +154,9 @@ public class Entity {
         }
 
 
-        if (!status.equals("")) {
-            drawStatus(batch, camera, hudCamera);
-        }
+
+        drawStatus(batch, camera, hudCamera);
+
 
         if (!inParty) {
             move(Gdx.graphics.getDeltaTime());
@@ -225,23 +230,19 @@ public class Entity {
     }
 
     private void drawStatus(SpriteBatch batch, OrthographicCamera camera, OrthographicCamera hudCamera) {
-        BitmapFont font = new BitmapFont();
         font.setColor(Color.BLACK);
 
         //conversion ratios for hud
         float wc = hudCamera.viewportWidth / camera.viewportWidth;
         float hc = hudCamera.viewportHeight / camera.viewportHeight;
 
-        hudCamera.position.x = camera.position.x * wc;
-        hudCamera.position.y = camera.position.y * hc;
-        hudCamera.update();
-
 
         batch.setProjectionMatrix(hudCamera.combined);
-        font.draw(batch, status, position.x * wc, position.y * hc);
+        font.draw(batch, name, position.x * wc, (position.y + size.y + 0.3f) * hc);
+        if (status != "") {
+            font.draw(batch, status, position.x * wc, position.y * hc);
+        }
         batch.setProjectionMatrix(camera.combined);
-
-        font.dispose();
     }
 
     public void setMoving(int direction, boolean value) {
@@ -364,7 +365,14 @@ public class Entity {
             camera.zoom -= CZS * Gdx.graphics.getDeltaTime();
             hudCamera.zoom -= CZS * Gdx.graphics.getDeltaTime();
         }
+
         camera.update();
+
+        float wc = hudCamera.viewportWidth / camera.viewportWidth;
+        float hc = hudCamera.viewportHeight / camera.viewportHeight;
+        hudCamera.position.x = camera.position.x * wc;
+        hudCamera.position.y = camera.position.y * hc;
+        hudCamera.update();
     }
 
     public void changeMoveRadius(int deltaRadius) {
@@ -412,6 +420,10 @@ public class Entity {
         dead = deathState;
     }
 
+    public boolean isDead() {
+        return dead;
+    }
+
     //sets entity to a random color
     public void randColor() {
         Random rand = new Random();
@@ -450,6 +462,9 @@ public class Entity {
         return textureName;
     }
 
+    public String getStatus() {
+        return status;
+    }
 
     public int getMoveRadius() { return moveRadius; }
 
@@ -521,5 +536,17 @@ public class Entity {
         } else {
             return null;
         }
+    }
+
+    public void randomName() {
+        this.name = names.get((int) Math.floor(Math.random() * names.size()));
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 }
