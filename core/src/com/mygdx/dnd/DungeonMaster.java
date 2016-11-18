@@ -38,6 +38,8 @@ public class DungeonMaster {
     private boolean cameraMoving[]; //determines whether camera is moving in 4 directions
     private DND game;
     private boolean fow; //determines if fow is being drawn
+    private boolean inBattle; //if in battle initiative marker will be drawn
+    private int battleTurn;
     FPSLogger logger;
 
     protected static final String FOG_TEXTURE = "whitebox"; //name of background texture
@@ -211,6 +213,18 @@ public class DungeonMaster {
                     }
                 } else if (mainCommand.equals("spawn")) {
                     spawnEntity(command.replaceAll("spawn ", ""));
+                } else if (mainCommand.equals("setname")) {
+                    if (tk.hasMoreTokens()) {
+                        String name = tk.nextToken();
+                        setName(name);
+                    } else {
+                        setName("");
+                    }
+                } else if (mainCommand.equals("setinit")) {
+                    if (tk.hasMoreTokens()) {
+                        int init = Integer.parseInt(tk.nextToken());
+                        setInit(init);
+                    }
                 }
 
 
@@ -224,6 +238,19 @@ public class DungeonMaster {
     private void setViewRange(int range) {
         currentEntity.setViewRange(range);
         currentEntity.setFOV();
+    }
+
+    private void setName(String name) {
+        if (name != "") {
+            currentEntity.setName(name);
+        } else {
+            currentEntity.randomName();
+        }
+
+    }
+
+    private void setInit(int init) {
+        currentEntity.setInit(init);
     }
 
     //Turns the current entity into a
@@ -269,7 +296,8 @@ public class DungeonMaster {
         for (Entity e : entities) {
             String line = e.getTextureName() + ";" + e.getPosition().x + ";"
                     + e.getPosition().y + ";" + e.getSize().x + ";"
-                    + e.getSize().y + ";" + e.isDead() + ";" + e.getName() + ";" + e.getStatus() + "\n";
+                    + e.getSize().y + ";" + e.isDead() + ";" + e.getName() + ";"
+                    + e.getInit() + ";" + e.getStatus() + "\n";
             fh.writeString(line, true);
         }
     }
@@ -290,6 +318,7 @@ public class DungeonMaster {
             float h = Float.parseFloat(entityTokenizer.nextToken());
             boolean deathState = Boolean.parseBoolean(entityTokenizer.nextToken());
             String name = entityTokenizer.nextToken();
+            int init = Integer.parseInt(entityTokenizer.nextToken());
 
 
 
@@ -297,6 +326,7 @@ public class DungeonMaster {
             Entity e = new Entity(new Vector2(x, y), new Vector2(w, h), texture, textures, wallPositions, names);
             e.setDead(deathState);
             e.setName(name);
+            e.setInit(init);
 
             if (entityTokenizer.hasMoreTokens()) {
                 String status = entityTokenizer.nextToken();
@@ -321,6 +351,67 @@ public class DungeonMaster {
 
     public void toggleFOW() {
         fow = !fow;
+    }
+
+    public void toggleInBattle() {
+        inBattle = !inBattle;
+
+        if (inBattle) {
+            prepBattle();
+        } else {
+            //unsetting current turn's entity
+            for (Entity e : entities) {
+                if (e.isTurn()) {
+                    e.toggleTurn();
+                    break;
+                }
+            }
+        }
+    }
+
+    public void nextTurn() {
+        if (inBattle) {
+            entities.get(battleTurn).toggleTurn();
+
+            if (battleTurn == entities.size() - 1) {
+                battleTurn = 0;
+            } else {
+                battleTurn++;
+            }
+
+            entities.get(battleTurn).toggleTurn();
+            setCurrentEntity(entities.get(battleTurn));
+        }
+    }
+
+    public void prevTurn() {
+        if (inBattle) {
+            entities.get(battleTurn).toggleTurn();
+
+            if (battleTurn == 0) {
+                battleTurn = entities.size() - 1;
+            } else {
+                battleTurn--;
+            }
+
+            entities.get(battleTurn).toggleTurn();
+            setCurrentEntity(entities.get(battleTurn));
+        }
+    }
+
+    //preps battle mode by sorting entities by initiative
+    //and marking the
+    private void prepBattle() {
+        Collections.sort(entities, new Comparator<Entity>() {
+            @Override
+            public int compare(Entity e1, Entity e2) {
+                return e2.getInit() - e1.getInit();
+            }
+        });
+
+        entities.get(0).toggleTurn();
+        setCurrentEntity(entities.get(0));
+        battleTurn = 0;
     }
 
     public void update(SpriteBatch batch) {

@@ -51,6 +51,11 @@ public class DMController extends InputAdapter {
             control = true;
         }
 
+        //battle mode stuff
+        if (keycode == Input.Keys.B) { dungeonMaster.toggleInBattle(); }
+        if (keycode == Input.Keys.NUM_2) { dungeonMaster.nextTurn(); }
+        if (keycode == Input.Keys.NUM_1) { dungeonMaster.prevTurn(); }
+
         //camera movement
         if (keycode == Input.Keys.W) { dungeonMaster.setCameraMoving(Direction.UP, true); }
         if (keycode == Input.Keys.S) { dungeonMaster.setCameraMoving(Direction.DOWN, true); }

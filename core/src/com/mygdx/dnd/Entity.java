@@ -71,6 +71,8 @@ public class Entity {
     protected String name;
     protected int viewRange; //number of tiles the player can see
     protected boolean inParty;
+    protected boolean isTurn; //whether it is this entities turn in battle
+    protected int init;
 
 
     public Entity(Vector2 position, Vector2 size, String textureName, Map<String, Texture> textures, ArrayList<Vector2> wallPositions, ArrayList<String> names) {
@@ -114,6 +116,8 @@ public class Entity {
         inParty = false;
         viewedTiles = new HashMap<Vector2, Boolean>();
         party = new ArrayList<Entity>();
+        init = 0;
+        isTurn = false;
 
         setFOV();
         randomName();
@@ -121,6 +125,7 @@ public class Entity {
     }
 
     public void update(SpriteBatch batch, OrthographicCamera camera, OrthographicCamera hudCamera) {
+
         if (selected) {
             pulse();
         }
@@ -230,15 +235,21 @@ public class Entity {
     }
 
     private void drawStatus(SpriteBatch batch, OrthographicCamera camera, OrthographicCamera hudCamera) {
-        font.setColor(Color.BLACK);
-
         //conversion ratios for hud
         float wc = hudCamera.viewportWidth / camera.viewportWidth;
         float hc = hudCamera.viewportHeight / camera.viewportHeight;
 
+        if (isTurn) {
+            font.setColor(Color.GOLD);
+        } else {
+            font.setColor(Color.BLACK);
+        }
+
 
         batch.setProjectionMatrix(hudCamera.combined);
         font.draw(batch, name, position.x * wc, (position.y + size.y + 0.3f) * hc);
+
+        font.setColor(Color.BLACK);
         if (status != "") {
             font.draw(batch, status, position.x * wc, position.y * hc);
         }
@@ -277,6 +288,22 @@ public class Entity {
     public void setParty(boolean val, Color leaderColor) {
         inParty = val;
         partyColor = leaderColor;
+    }
+
+    public void setInit(int init) {
+        this.init = init;
+    }
+
+    public int getInit() {
+        return init;
+    }
+
+    public void toggleTurn() {
+        isTurn = !isTurn;
+    }
+
+    public boolean isTurn() {
+        return isTurn;
     }
 
 
