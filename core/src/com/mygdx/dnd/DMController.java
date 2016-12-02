@@ -34,7 +34,7 @@ public class DMController extends InputAdapter {
         Vector2 pos = new Vector2((float)x, (float)y);
 
         if (dungeonMaster.entityAt(pos)) {
-            if (control) {
+            if (control && dungeonMaster.getCurrentEntity() != null) {
                 dungeonMaster.getCurrentEntity().togglePartyMember(dungeonMaster.getEntity(pos));
             } else {
                 dungeonMaster.setCurrentEntity(dungeonMaster.getEntity(pos));

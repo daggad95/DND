@@ -381,6 +381,10 @@ public class DungeonMaster {
 
             entities.get(battleTurn).toggleTurn();
             setCurrentEntity(entities.get(battleTurn));
+
+            Vector2 pos = entities.get(battleTurn).getPosition();
+            camera.position.set(pos.x, pos.y, 0);
+            camera.update();
         }
     }
 
@@ -396,6 +400,10 @@ public class DungeonMaster {
 
             entities.get(battleTurn).toggleTurn();
             setCurrentEntity(entities.get(battleTurn));
+
+            Vector2 pos = entities.get(battleTurn).getPosition();
+            camera.position.set(pos.x, pos.y, 0);
+            camera.update();
         }
     }
 
@@ -412,6 +420,10 @@ public class DungeonMaster {
         entities.get(0).toggleTurn();
         setCurrentEntity(entities.get(0));
         battleTurn = 0;
+
+        Vector2 pos = entities.get(battleTurn).getPosition();
+        camera.position.set(pos.x, pos.y, 0);
+        camera.update();
     }
 
     public void update(SpriteBatch batch) {
