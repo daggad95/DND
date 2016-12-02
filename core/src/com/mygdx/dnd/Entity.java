@@ -120,8 +120,7 @@ public class Entity {
         isTurn = false;
 
         setFOV();
-        randomName();
-
+        genName();
     }
 
     public void update(SpriteBatch batch, OrthographicCamera camera, OrthographicCamera hudCamera) {
@@ -568,6 +567,20 @@ public class Entity {
             return viewedTiles;
         } else {
             return null;
+        }
+    }
+
+    private void genName() {
+        if (textureName.equals("david")) {
+            name = "Arashi";
+        } else if (textureName.equals("jono")) {
+            name = "Erotic";
+        } else if (textureName.equals("chase")) {
+            name = "Enix";
+        } else if (textureName.equals("evan")) {
+            name = "Der Fickle";
+        } else {
+            randomName();
         }
     }
 
